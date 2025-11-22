@@ -83,3 +83,17 @@ alter table wishlist enable row level security;
 create policy "Users can view their own wishlist" on wishlist for select using (true);
 create policy "Users can insert into their own wishlist" on wishlist for insert with check (true);
 create policy "Users can delete from their own wishlist" on wishlist for delete using (true);
+
+-- RECENTLY VIEWED TABLE
+create table if not exists recently_viewed (
+  id uuid default uuid_generate_v4() primary key,
+  "userId" uuid references users(id) on delete cascade,
+  "productId" uuid references products(id) on delete cascade,
+  "viewedAt" timestamp with time zone default timezone('utc'::text, now()),
+  unique("userId", "productId")
+);
+
+alter table recently_viewed enable row level security;
+create policy "Users can view their own history" on recently_viewed for select using (true);
+create policy "Users can insert their own history" on recently_viewed for insert with check (true);
+create policy "Users can update their own history" on recently_viewed for update using (true);

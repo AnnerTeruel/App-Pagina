@@ -14,6 +14,9 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ShoppingCart, Minus, Plus, Package, Ruler, Palette, Star } from 'lucide-react';
 import { toast } from 'sonner';
 import { reviewService, Review } from '@/services/review.service';
+import { ImageZoom } from '@/components/ImageZoom';
+import { recentlyViewedService } from '@/services/recently-viewed.service';
+import { ProductCard } from '@/components/ProductCard';
 
 
 export default function ProductDetailPage() {
@@ -31,6 +34,7 @@ export default function ProductDetailPage() {
   const [newRating, setNewRating] = useState(5);
   const [newComment, setNewComment] = useState('');
   const [isSubmittingReview, setIsSubmittingReview] = useState(false);
+  const [relatedProducts, setRelatedProducts] = useState<Product[]>([]);
 
   const averageRating = reviews.length
     ? reviews.reduce((acc, r) => acc + r.rating, 0) / reviews.length
@@ -62,6 +66,20 @@ export default function ProductDetailPage() {
         if (foundReviews) {
           setReviews(foundReviews);
         }
+
+        // Track recently viewed
+        if (user?.id && foundProduct) {
+          await recentlyViewedService.addView(user.id, foundProduct.id);
+        }
+
+        // Fetch related products (same category)
+        if (foundProduct) {
+          const allProducts = await productService.getAllProducts();
+          const related = allProducts
+            .filter(p => p.category === foundProduct.category && p.id !== foundProduct.id)
+            .slice(0, 4);
+          setRelatedProducts(related);
+        }
       } catch (error) {
         console.error(error);
         toast.error("Error al cargar el producto");
@@ -69,7 +87,7 @@ export default function ProductDetailPage() {
     };
 
     fetchProductAndReviews();
-  }, [params.id]);
+  }, [params.id, user]);
 
   const handleSubmitReview = async () => {
     if (!isAuthenticated) {
@@ -156,7 +174,7 @@ export default function ProductDetailPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-12">
         <div className="relative aspect-square rounded-2xl overflow-hidden bg-muted">
-          <Image
+          <ImageZoom
             src={currentImage || product.image}
             alt={product.name}
             fill
@@ -378,6 +396,18 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </div>
+
+      {/* Related Products Section */}
+      {relatedProducts.length > 0 && (
+        <div className="mt-16">
+          <h2 className="text-2xl font-bold mb-6">Productos Relacionados</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            {relatedProducts.map((relatedProduct) => (
+              <ProductCard key={relatedProduct.id} product={relatedProduct} />
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

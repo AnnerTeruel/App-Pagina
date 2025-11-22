@@ -1,20 +1,23 @@
-
 'use client';
 
 import { useEffect, useState } from 'react';
 import { Product } from '@/types';
 import { productService } from '@/services/product.service';
 import { ProductCard } from '@/components/ProductCard';
+import { SearchBar } from '@/components/SearchBar';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Card } from '@/components/ui/card';
-import { Filter } from 'lucide-react';
+import { Filter, Package } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 
 export default function ShopPage() {
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [sortBy, setSortBy] = useState<string>('default');
+  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [availabilityFilter, setAvailabilityFilter] = useState<string>('all');
   const [categories, setCategories] = useState<string[]>([]);
 
   useEffect(() => {
@@ -37,29 +40,45 @@ export default function ShopPage() {
   useEffect(() => {
     let filtered = [...products];
 
+    // Search filter
+    if (searchQuery.trim()) {
+      const query = searchQuery.toLowerCase();
+      filtered = filtered.filter(p => 
+        p.name.toLowerCase().includes(query) ||
+        p.description.toLowerCase().includes(query) ||
+        p.category.toLowerCase().includes(query)
+      );
+    }
+
+    // Category filter
     if (selectedCategory !== 'all') {
       filtered = filtered.filter(p => p.category === selectedCategory);
     }
 
+    // Availability filter
+    if (availabilityFilter === 'in-stock') {
+      filtered = filtered.filter(p => p.inventory > 0);
+    } else if (availabilityFilter === 'out-of-stock') {
+      filtered = filtered.filter(p => p.inventory === 0);
+    }
+
+    // Sorting
     switch (sortBy) {
-      case 'price-asc':
-        filtered.sort((a, b) => a.price - b.price);
+      case 'newest':
+        filtered.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
         break;
-      case 'price-desc':
-        filtered.sort((a, b) => b.price - a.price);
+      case 'name-asc':
+        filtered.sort((a, b) => a.name.localeCompare(b.name));
         break;
-      case 'inventory-asc':
-        filtered.sort((a, b) => a.inventory - b.inventory);
-        break;
-      case 'inventory-desc':
-        filtered.sort((a, b) => b.inventory - a.inventory);
+      case 'name-desc':
+        filtered.sort((a, b) => b.name.localeCompare(a.name));
         break;
       default:
         break;
     }
 
     setFilteredProducts(filtered);
-  }, [selectedCategory, sortBy, products]);
+  }, [selectedCategory, sortBy, products, searchQuery, availabilityFilter]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -70,6 +89,11 @@ export default function ShopPage() {
         </p>
       </div>
 
+      {/* Search Bar */}
+      <div className="mb-6">
+        <SearchBar onSearch={setSearchQuery} />
+      </div>
+
       <div className="grid lg:grid-cols-4 gap-8">
         <aside className="lg:col-span-1">
           <Card className="p-6 sticky top-20">
@@ -78,7 +102,8 @@ export default function ShopPage() {
               <h2 className="text-lg font-semibold">Filtros</h2>
             </div>
 
-            <div className="space-y-4">
+            <div className="space-y-6">
+              {/* Category Filter */}
               <div>
                 <label className="text-sm font-medium mb-2 block">Categoría</label>
                 <div className="space-y-2">
@@ -101,28 +126,65 @@ export default function ShopPage() {
                   ))}
                 </div>
               </div>
+
+              {/* Availability Filter */}
+              <div>
+                <label className="text-sm font-medium mb-2 block">Disponibilidad</label>
+                <div className="space-y-2">
+                  <Button
+                    variant={availabilityFilter === 'all' ? 'default' : 'outline'}
+                    className="w-full justify-start"
+                    onClick={() => setAvailabilityFilter('all')}
+                  >
+                    <Package className="mr-2 h-4 w-4" />
+                    Todos
+                  </Button>
+                  <Button
+                    variant={availabilityFilter === 'in-stock' ? 'default' : 'outline'}
+                    className="w-full justify-start"
+                    onClick={() => setAvailabilityFilter('in-stock')}
+                  >
+                    <Package className="mr-2 h-4 w-4" />
+                    En stock
+                  </Button>
+                  <Button
+                    variant={availabilityFilter === 'out-of-stock' ? 'default' : 'outline'}
+                    className="w-full justify-start"
+                    onClick={() => setAvailabilityFilter('out-of-stock')}
+                  >
+                    <Package className="mr-2 h-4 w-4" />
+                    Agotado
+                  </Button>
+                </div>
+              </div>
             </div>
           </Card>
         </aside>
 
         <div className="lg:col-span-3">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
-            <p className="text-muted-foreground">
-              Mostrando {filteredProducts.length} productos
-            </p>
+            <div className="flex items-center gap-2">
+              <p className="text-muted-foreground">
+                Mostrando {filteredProducts.length} productos
+              </p>
+              {searchQuery && (
+                <Badge variant="secondary">
+                  Búsqueda: "{searchQuery}"
+                </Badge>
+              )}
+            </div>
 
             <div className="flex items-center gap-2">
               <span className="text-sm font-medium">Ordenar por:</span>
               <Select value={sortBy} onValueChange={setSortBy}>
-                <SelectTrigger className="w-[200px]">
+                <SelectTrigger className="w-[180px]">
                   <SelectValue placeholder="Seleccionar" />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="default">Predeterminado</SelectItem>
-                  <SelectItem value="price-asc">Precio: Menor a Mayor</SelectItem>
-                  <SelectItem value="price-desc">Precio: Mayor a Menor</SelectItem>
-                  <SelectItem value="inventory-asc">Stock: Menor a Mayor</SelectItem>
-                  <SelectItem value="inventory-desc">Stock: Mayor a Menor</SelectItem>
+                  <SelectItem value="newest">Más nuevos</SelectItem>
+                  <SelectItem value="name-asc">Nombre A-Z</SelectItem>
+                  <SelectItem value="name-desc">Nombre Z-A</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -136,8 +198,13 @@ export default function ShopPage() {
             </div>
           ) : (
             <Card className="p-12 text-center">
-              <p className="text-muted-foreground">
-                No se encontraron productos con los filtros seleccionados
+              <p className="text-muted-foreground text-lg mb-2">
+                No se encontraron productos
+              </p>
+              <p className="text-sm text-muted-foreground">
+                {searchQuery 
+                  ? `No hay resultados para "${searchQuery}"`
+                  : "Intenta ajustar los filtros"}
               </p>
             </Card>
           )}
