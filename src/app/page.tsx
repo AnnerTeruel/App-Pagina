@@ -35,11 +35,11 @@ export default function Home() {
           <div className="grid md:grid-cols-2 gap-12 items-center">
             <div className="space-y-6">
               <h1 className="text-4xl md:text-6xl font-bold leading-tight">
-                Equipamiento Deportivo de
+                Sublimacion de Ropa y Accesorios
                 <span className="text-primary"> Alta Calidad</span>
               </h1>
               <p className="text-lg text-muted-foreground">
-                Descubre nuestra colección exclusiva de productos deportivos diseñados para llevar tu rendimiento al siguiente nivel.
+                Descubre nuestra colección exclusiva de productos para sublimar ropa y accesorios.
               </p>
               <div className="flex flex-wrap gap-4">
                 <Link href="/shop">
