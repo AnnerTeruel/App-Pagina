@@ -148,22 +148,30 @@ export default function AdminDesignsPage() {
                   </div>
 
                   <div className="flex gap-2">
-                    {request.status === 'pending' && (
-                      <Button
-                        size="sm"
-                        onClick={() => updateStatus(request.id, 'in-progress', 'request')}
-                      >
-                        Marcar en Proceso
-                      </Button>
-                    )}
-                    {request.status === 'in-progress' && (
-                      <Button
-                        size="sm"
-                        onClick={() => updateStatus(request.id, 'completed', 'request')}
-                      >
-                        Marcar Completado
-                      </Button>
-                    )}
+                    <Button
+                      size="sm"
+                      variant={request.status === 'pending' ? 'default' : 'outline'}
+                      onClick={() => updateStatus(request.id, 'pending', 'request')}
+                      disabled={request.status === 'pending'}
+                    >
+                      Pendiente
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={request.status === 'in-progress' ? 'default' : 'outline'}
+                      onClick={() => updateStatus(request.id, 'in-progress', 'request')}
+                      disabled={request.status === 'in-progress'}
+                    >
+                      En Proceso
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant={request.status === 'completed' ? 'default' : 'outline'}
+                      onClick={() => updateStatus(request.id, 'completed', 'request')}
+                      disabled={request.status === 'completed'}
+                    >
+                      Completado
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -203,29 +211,37 @@ export default function AdminDesignsPage() {
                       <Calendar className="h-4 w-4 text-muted-foreground" />
                       <span>{new Date(design.createdAt).toLocaleDateString()}</span>
                     </div>
-                    <Badge variant={design.status === 'approved' ? 'default' : 'outline'}>
+                    <Badge variant={design.status === 'approved' ? 'default' : design.status === 'rejected' ? 'destructive' : 'outline'}>
                       {design.status === 'pending' && 'Pendiente'}
                       {design.status === 'approved' && 'Aprobado'}
                       {design.status === 'rejected' && 'Rechazado'}
                     </Badge>
-                    {design.status === 'pending' && (
-                      <div className="flex gap-2">
-                        <Button
-                          size="sm"
-                          variant="default"
-                          onClick={() => updateStatus(design.id, 'approved', 'design')}
-                        >
-                          Aprobar
-                        </Button>
-                        <Button
-                          size="sm"
-                          variant="destructive"
-                          onClick={() => updateStatus(design.id, 'rejected', 'design')}
-                        >
-                          Rechazar
-                        </Button>
-                      </div>
-                    )}
+                    <div className="flex gap-2">
+                      <Button
+                        size="sm"
+                        variant={design.status === 'approved' ? 'default' : 'outline'}
+                        onClick={() => updateStatus(design.id, 'approved', 'design')}
+                        disabled={design.status === 'approved'}
+                      >
+                        Aprobar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={design.status === 'rejected' ? 'destructive' : 'outline'}
+                        onClick={() => updateStatus(design.id, 'rejected', 'design')}
+                        disabled={design.status === 'rejected'}
+                      >
+                        Rechazar
+                      </Button>
+                      <Button
+                        size="sm"
+                        variant={design.status === 'pending' ? 'secondary' : 'outline'}
+                        onClick={() => updateStatus(design.id, 'pending', 'design')}
+                        disabled={design.status === 'pending'}
+                      >
+                        Pendiente
+                      </Button>
+                    </div>
                   </CardContent>
                 </Card>
               ))}

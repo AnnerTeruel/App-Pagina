@@ -169,22 +169,30 @@ export default function AdminQuotesPage() {
                 </div>
 
                 <div className="flex gap-2">
-                  {quote.status === 'pending' && (
-                    <Button
-                      size="sm"
-                      onClick={() => updateStatus(quote.id, 'in-progress')}
-                    >
-                      Marcar en Proceso
-                    </Button>
-                  )}
-                  {quote.status === 'in-progress' && (
-                    <Button
-                      size="sm"
-                      onClick={() => updateStatus(quote.id, 'completed')}
-                    >
-                      Marcar Completado
-                    </Button>
-                  )}
+                  <Button
+                    size="sm"
+                    variant={quote.status === 'pending' ? 'default' : 'outline'}
+                    onClick={() => updateStatus(quote.id, 'pending')}
+                    disabled={quote.status === 'pending'}
+                  >
+                    Pendiente
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={quote.status === 'in-progress' ? 'default' : 'outline'}
+                    onClick={() => updateStatus(quote.id, 'in-progress')}
+                    disabled={quote.status === 'in-progress'}
+                  >
+                    En Proceso
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant={quote.status === 'completed' ? 'default' : 'outline'}
+                    onClick={() => updateStatus(quote.id, 'completed')}
+                    disabled={quote.status === 'completed'}
+                  >
+                    Completado
+                  </Button>
                 </div>
               </CardContent>
             </Card>
