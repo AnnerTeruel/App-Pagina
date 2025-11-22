@@ -5,9 +5,9 @@ import { validateEnv } from "./api-utils";
  * Utility class for common CRUD operations with PostgREST
  */
 export default class CrudOperations<T = any> {
-  constructor(private tableName: string) { }
+  constructor(protected tableName: string) { }
 
-  private get client() {
+  protected get client() {
     return createPostgrestClient();
   }
 

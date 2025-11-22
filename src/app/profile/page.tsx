@@ -5,11 +5,12 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { orderService } from '@/services/order.service';
 import { quoteService } from '@/services/quote.service';
+import { pointsService } from '@/services/points.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { User, Package, MapPin, CreditCard, FileText, DollarSign } from 'lucide-react';
+import { User, Package, MapPin, CreditCard, FileText, DollarSign, Trophy, Star } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
@@ -17,6 +18,7 @@ export default function ProfilePage() {
   const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
   const [quotes, setQuotes] = useState<any[]>([]);
+  const [points, setPoints] = useState(0);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -29,12 +31,14 @@ export default function ProfilePage() {
       if (!user?.id) return;
       
       try {
-        const [userOrders, userQuotes] = await Promise.all([
+        const [userOrders, userQuotes, userPoints] = await Promise.all([
           orderService.getOrdersByUserId(user.id),
-          quoteService.getUserQuotes(user.id)
+          quoteService.getUserQuotes(user.id),
+          pointsService.getUserPoints(user.id)
         ]);
         setOrders(userOrders || []);
         setQuotes(userQuotes || []);
+        setPoints(userPoints || 0);
       } catch (error) {
         console.error('Error al cargar datos:', error);
         toast.error('Error al cargar información');
@@ -104,6 +108,29 @@ export default function ProfilePage() {
                   Administrador
                 </Badge>
               )}
+            </CardContent>
+          </Card>
+
+          {/* Points Card */}
+          <Card className="mt-6 bg-gradient-to-br from-yellow-50 to-orange-50 border-yellow-200">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-yellow-700">
+                <Trophy className="h-5 w-5" />
+                Mis Puntos
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-center mb-4">
+                <span className="text-4xl font-bold text-yellow-600">{points}</span>
+                <p className="text-sm text-yellow-600/80">puntos disponibles</p>
+              </div>
+              <Button 
+                className="w-full bg-yellow-500 hover:bg-yellow-600 text-white"
+                onClick={() => router.push('/rewards')}
+              >
+                <Star className="mr-2 h-4 w-4" />
+                Ver Recompensas
+              </Button>
             </CardContent>
           </Card>
         </div>

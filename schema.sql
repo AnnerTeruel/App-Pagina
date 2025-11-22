@@ -41,13 +41,31 @@ create table if not exists orders (
   "createdAt" timestamp with time zone default timezone('utc'::text, now())
 );
 
--- RLS POLICIES (Open for now for simplicity, lock down in production)
-alter table products enable row level security;
-create policy "Public products are viewable by everyone" on products for select using (true);
-create policy "Users can insert products" on products for insert with check (true);
-create policy "Users can update products" on products for update using (true);
+-- GAMIFICATION SYSTEM
 
-alter table users enable row level security;
+-- Add points to users table
+alter table users add column if not exists points integer default 0;
+
+-- Points History Table
+create table if not exists points_history (
+  id uuid default uuid_generate_v4() primary key,
+  "userId" uuid references users(id),
+  amount integer not null,
+  reason text not null, -- 'purchase', 'redemption', 'bonus', 'refund'
+  description text,
+  "createdAt" timestamp with time zone default timezone('utc'::text, now())
+);
+
+-- RLS for points_history
+alter table points_history enable row level security;
+
+create policy "Users can view their own points history" 
+  on points_history for select 
+  using (auth.uid() = "userId");
+
+create policy "System can insert points history" 
+  on points_history for insert 
+  with check (true); -- In a real app, this should be restricted to server-side only functions
 create policy "Users are viewable by everyone" on users for select using (true);
 create policy "Users can insert" on users for insert with check (true);
 
