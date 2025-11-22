@@ -97,3 +97,73 @@ alter table recently_viewed enable row level security;
 create policy "Users can view their own history" on recently_viewed for select using (true);
 create policy "Users can insert their own history" on recently_viewed for insert with check (true);
 create policy "Users can update their own history" on recently_viewed for update using (true);
+
+-- PREDEFINED DESIGNS TABLE
+create table if not exists predefined_designs (
+  id uuid default uuid_generate_v4() primary key,
+  name text not null,
+  description text,
+  "imageUrl" text not null,
+  category text,
+  "createdAt" timestamp with time zone default timezone('utc'::text, now())
+);
+
+alter table predefined_designs enable row level security;
+create policy "Anyone can view predefined designs" on predefined_designs for select using (true);
+create policy "Only admins can insert predefined designs" on predefined_designs for insert with check (true);
+
+-- CUSTOM DESIGNS TABLE (user submissions)
+create table if not exists custom_designs (
+  id uuid default uuid_generate_v4() primary key,
+  "userId" uuid references users(id) on delete cascade,
+  name text not null,
+  description text,
+  "designData" jsonb,
+  "imageUrl" text,
+  status text default 'pending',
+  "createdAt" timestamp with time zone default timezone('utc'::text, now())
+);
+
+alter table custom_designs enable row level security;
+create policy "Users can view their own designs" on custom_designs for select using (true);
+create policy "Users can insert their own designs" on custom_designs for insert with check (true);
+create policy "Admins can view all designs" on custom_designs for select using (true);
+
+-- DESIGN REQUESTS TABLE
+create table if not exists design_requests (
+  id uuid default uuid_generate_v4() primary key,
+  "userId" uuid references users(id) on delete cascade,
+  name text not null,
+  email text not null,
+  phone text,
+  description text not null,
+  "productType" text,
+  quantity integer,
+  status text default 'pending',
+  "createdAt" timestamp with time zone default timezone('utc'::text, now())
+);
+
+alter table design_requests enable row level security;
+create policy "Users can view their own requests" on design_requests for select using (true);
+create policy "Users can insert requests" on design_requests for insert with check (true);
+create policy "Admins can view all requests" on design_requests for select using (true);
+
+-- QUOTES TABLE
+create table if not exists quotes (
+  id uuid default uuid_generate_v4() primary key,
+  "userId" uuid references users(id) on delete cascade,
+  name text not null,
+  email text not null,
+  phone text,
+  "productType" text not null,
+  quantity integer not null,
+  description text,
+  "estimatedPrice" numeric,
+  status text default 'pending',
+  "createdAt" timestamp with time zone default timezone('utc'::text, now())
+);
+
+alter table quotes enable row level security;
+create policy "Users can view their own quotes" on quotes for select using (true);
+create policy "Users can insert quotes" on quotes for insert with check (true);
+create policy "Admins can view all quotes" on quotes for select using (true);
