@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Star, FileText, Package, DollarSign, ShoppingCart, AlertTriangle } from 'lucide-react';
+import { Star, FileText, Package, DollarSign, ShoppingCart, AlertTriangle, Palette } from 'lucide-react';
 import { productService } from '@/services/product.service';
 import { orderService } from '@/services/order.service';
 import { toast } from 'sonner';
@@ -242,6 +242,52 @@ export default function AdminPage() {
             <Link href="/admin/products">
               <Button className="w-full">
                 Gestionar Productos
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Palette className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Diseños Personalizados</CardTitle>
+                <CardDescription>
+                  Gestiona solicitudes y diseños de clientes
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Link href="/admin/designs">
+              <Button className="w-full">
+                Ver Diseños
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <DollarSign className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Cotizaciones</CardTitle>
+                <CardDescription>
+                  Administra solicitudes de cotización
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Link href="/admin/quotes">
+              <Button className="w-full">
+                Ver Cotizaciones
               </Button>
             </Link>
           </CardContent>
