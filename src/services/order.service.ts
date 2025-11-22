@@ -33,9 +33,16 @@ class OrderService extends CrudOperations {
                         `Compra #${createdOrder.id.slice(0, 8)}`
                     );
                 }
-            } catch (pointsError) {
+            } catch (pointsError: any) {
                 console.error('Error awarding points:', pointsError);
-                // Don't fail the order if points fail
+                // Temporary debug toast
+                // @ts-ignore
+                if (typeof window !== 'undefined') {
+                    // @ts-ignore
+                    import('sonner').then(({ toast }) => {
+                        toast.error(`Error al sumar puntos: ${pointsError?.message || 'Unknown error'}`);
+                    });
+                }
             }
         }
 
