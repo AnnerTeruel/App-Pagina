@@ -37,6 +37,17 @@ export default function AdminQuotesPage() {
       console.log('Fetching quotes...');
       const allQuotes = await quoteService.getAllQuotes();
       console.log('Fetched quotes:', JSON.parse(JSON.stringify(allQuotes))); // Deep log
+      
+      // Log each quote's key fields
+      allQuotes?.forEach((q: any, i: number) => {
+        console.log(`Quote ${i}:`, {
+          id: q.id,
+          status: q.status,
+          estimatedPrice: q.estimatedPrice,
+          productType: q.productType
+        });
+      });
+      
       // Force new array reference to trigger re-render
       setQuotes([...(allQuotes || [])]);
     } catch (error) {
