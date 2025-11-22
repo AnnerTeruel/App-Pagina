@@ -35,8 +35,18 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
-      console.log('Fetching users...');
+      console.log('--- DEBUG START ---');
+      console.log('Current User:', currentUser);
+      console.log('Supabase URL defined:', !!process.env.NEXT_PUBLIC_SUPABASE_URL);
+      
       const client = createPostgrestClient();
+      
+      // Test fetch to products to verify connection
+      console.log('Testing connection with products...');
+      const { data: products, error: productsError } = await client.from('products').select('id').limit(1);
+      console.log('Products check:', { success: !productsError, error: productsError });
+
+      console.log('Fetching users...');
       const { data, error } = await client
         .from('users')
         .select('*')
@@ -51,6 +61,7 @@ export default function AdminUsersPage() {
       toast.error('Error al cargar usuarios');
     } finally {
       setLoading(false);
+      console.log('--- DEBUG END ---');
     }
   };
 
