@@ -4,17 +4,19 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { orderService } from '@/services/order.service';
+import { quoteService } from '@/services/quote.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { User, Package, MapPin, CreditCard } from 'lucide-react';
+import { User, Package, MapPin, CreditCard, FileText, DollarSign } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuth();
   const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
+  const [quotes, setQuotes] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -23,21 +25,25 @@ export default function ProfilePage() {
       return;
     }
 
-    const fetchOrders = async () => {
+    const fetchData = async () => {
       if (!user?.id) return;
       
       try {
-        const userOrders = await orderService.getOrdersByUserId(user.id);
+        const [userOrders, userQuotes] = await Promise.all([
+          orderService.getOrdersByUserId(user.id),
+          quoteService.getUserQuotes(user.id)
+        ]);
         setOrders(userOrders || []);
+        setQuotes(userQuotes || []);
       } catch (error) {
-        console.error('Error al cargar pedidos:', error);
-        toast.error('Error al cargar el historial de pedidos');
+        console.error('Error al cargar datos:', error);
+        toast.error('Error al cargar información');
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchOrders();
+    fetchData();
   }, [isAuthenticated, user, router]);
 
   if (!user) {
@@ -204,6 +210,80 @@ export default function ProfilePage() {
             </CardContent>
           </Card>
         </div>
+      </div>
+
+      {/* Quotes Section */}
+      <div className="mt-8">
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5" />
+              Mis Cotizaciones
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {isLoading ? (
+              <p className="text-center text-muted-foreground py-8">Cargando cotizaciones...</p>
+            ) : quotes.length === 0 ? (
+              <div className="text-center py-8">
+                <FileText className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
+                <p className="text-muted-foreground mb-4">No tienes cotizaciones todavía</p>
+                <Button onClick={() => router.push('/quote')}>
+                  Solicitar Cotización
+                </Button>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {quotes.map((quote) => (
+                  <div key={quote.id} className="border rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-3">
+                      <div>
+                        <p className="font-semibold">{quote.productType}</p>
+                        <p className="text-sm text-muted-foreground">
+                          {quote.quantity} unidades
+                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">
+                          {new Date(quote.createdAt).toLocaleDateString('es-ES', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                          })}
+                        </p>
+                      </div>
+                      <Badge variant={
+                        quote.status === 'completed' ? 'default' :
+                        quote.status === 'in-progress' ? 'secondary' :
+                        'outline'
+                      }>
+                        {quote.status === 'in-progress' && 'En Proceso'}
+                        {quote.status === 'completed' && 'Completado'}
+                        {(!quote.status || quote.status === 'pending') && 'Pendiente'}
+                      </Badge>
+                    </div>
+
+                    {quote.description && (
+                      <p className="text-sm text-muted-foreground mb-3">
+                        {quote.description}
+                      </p>
+                    )}
+
+                    {quote.estimatedPrice && (
+                      <div className="flex items-center gap-2 mt-3 p-3 bg-primary/5 rounded-lg">
+                        <DollarSign className="h-5 w-5 text-primary" />
+                        <div>
+                          <p className="text-xs text-muted-foreground">Precio Estimado</p>
+                          <p className="text-lg font-bold text-primary">
+                            ${quote.estimatedPrice.toFixed(2)}
+                          </p>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+          </CardContent>
+        </Card>
       </div>
     </div>
   );
