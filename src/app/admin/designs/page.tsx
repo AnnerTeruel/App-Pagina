@@ -112,9 +112,9 @@ export default function AdminDesignsPage() {
                       request.status === 'in-progress' ? 'secondary' :
                       'outline'
                     }>
-                      {request.status === 'pending' && 'Pendiente'}
                       {request.status === 'in-progress' && 'En Proceso'}
                       {request.status === 'completed' && 'Completado'}
+                      {(!request.status || request.status === 'pending') && 'Pendiente'}
                     </Badge>
                   </div>
                 </CardHeader>
@@ -150,9 +150,9 @@ export default function AdminDesignsPage() {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      variant={request.status === 'pending' ? 'default' : 'outline'}
+                      variant={(!request.status || request.status === 'pending') ? 'default' : 'outline'}
                       onClick={() => updateStatus(request.id, 'pending', 'request')}
-                      disabled={request.status === 'pending'}
+                      disabled={!request.status || request.status === 'pending'}
                     >
                       Pendiente
                     </Button>

@@ -108,9 +108,9 @@ export default function AdminQuotesPage() {
                     quote.status === 'in-progress' ? 'secondary' :
                     'outline'
                   }>
-                    {quote.status === 'pending' && 'Pendiente'}
                     {quote.status === 'in-progress' && 'En Proceso'}
                     {quote.status === 'completed' && 'Completado'}
+                    {(!quote.status || quote.status === 'pending') && 'Pendiente'}
                   </Badge>
                 </div>
               </CardHeader>
@@ -171,9 +171,9 @@ export default function AdminQuotesPage() {
                 <div className="flex gap-2">
                   <Button
                     size="sm"
-                    variant={quote.status === 'pending' ? 'default' : 'outline'}
+                    variant={(!quote.status || quote.status === 'pending') ? 'default' : 'outline'}
                     onClick={() => updateStatus(quote.id, 'pending')}
-                    disabled={quote.status === 'pending'}
+                    disabled={!quote.status || quote.status === 'pending'}
                   >
                     Pendiente
                   </Button>
