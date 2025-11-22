@@ -109,7 +109,9 @@ export default function AdminUsersPage() {
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!currentUser?.isAdmin) {
+  const isAdmin = currentUser?.role === 'admin' || currentUser?.isAdmin;
+
+  if (!isAdmin) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
         <h1 className="text-2xl font-bold text-red-500 mb-4">Acceso Denegado</h1>

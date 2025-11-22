@@ -1,4 +1,3 @@
-
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
@@ -60,9 +59,15 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      const userWithoutPassword = { ...foundUser, password: '' };
-      setUser(userWithoutPassword);
-      storage.setCurrentUser(userWithoutPassword); // Keep session in local storage for persistence
+      // Ensure isAdmin is set based on role
+      const userWithRole = { 
+        ...foundUser, 
+        password: '', // Remove password for client-side storage
+        isAdmin: foundUser.role === 'admin' 
+      };
+      
+      setUser(userWithRole);
+      storage.setCurrentUser(userWithRole); // Keep session in local storage for persistence
       
       toast.success('Inicio de sesión exitoso');
       return true;
