@@ -1,3 +1,5 @@
+'use client';
+
 import Link from 'next/link';
 import { ShoppingCart, User, LogOut, LayoutDashboard, Heart, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
