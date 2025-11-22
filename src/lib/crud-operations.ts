@@ -4,8 +4,8 @@ import { validateEnv } from "./api-utils";
 /**
  * Utility class for common CRUD operations with PostgREST
  */
-export default class CrudOperations {
-  constructor(private tableName: string) {}
+export default class CrudOperations<T = any> {
+  constructor(private tableName: string) { }
 
   private get client() {
     return createPostgrestClient();
@@ -88,7 +88,7 @@ export default class CrudOperations {
    */
   async create(data: Record<string, any>) {
     validateEnv();
-      
+
     const res = await this.client
       .from(this.tableName)
       .insert([data])
@@ -107,10 +107,7 @@ export default class CrudOperations {
   /**
    * Updates an existing record by ID
    */
-  async update(
-    id: string | number,
-    data: Record<string, any>
-  ) {
+  async update(id: string, data: Partial<T>): Promise<T | null> {
     validateEnv();
 
     const { data: result, error } = await this.client
