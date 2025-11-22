@@ -109,7 +109,15 @@ export default function AdminUsersPage() {
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  if (!currentUser?.isAdmin) return null;
+  if (!currentUser?.isAdmin) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-2xl font-bold text-red-500 mb-4">Acceso Denegado</h1>
+        <p className="text-muted-foreground">No tienes permisos de administrador para ver esta página.</p>
+        <p className="text-sm text-muted-foreground mt-2">Role actual: {currentUser?.role || 'Invitado'}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
