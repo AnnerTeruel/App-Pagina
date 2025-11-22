@@ -35,11 +35,14 @@ export default function AdminUsersPage() {
 
   const fetchUsers = async () => {
     try {
+      console.log('Fetching users...');
       const client = createPostgrestClient();
       const { data, error } = await client
         .from('users')
         .select('*')
         .order('createdAt', { ascending: false });
+
+      console.log('Users fetch result:', { data, error });
 
       if (error) throw error;
       setUsers(data || []);
