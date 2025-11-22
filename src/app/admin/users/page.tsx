@@ -109,7 +109,15 @@ export default function AdminUsersPage() {
     u.email?.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const isAdmin = currentUser?.role === 'admin' || currentUser?.isAdmin;
+  console.log('Role Debug:', { 
+    role: currentUser?.role, 
+    type: typeof currentUser?.role,
+    length: currentUser?.role?.length,
+    isAdminProp: currentUser?.isAdmin,
+    check: currentUser?.role === 'admin'
+  });
+
+  const isAdmin = (currentUser?.role && currentUser.role.trim().toLowerCase() === 'admin') || currentUser?.isAdmin;
 
   if (!isAdmin) {
     return (
