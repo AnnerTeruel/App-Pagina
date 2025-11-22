@@ -50,7 +50,7 @@ export default function AdminQuotesPage() {
       const result = await quoteService.update(id, { status });
       console.log('Quote update result:', result);
       toast.success('Estado actualizado');
-      fetchQuotes();
+      await fetchQuotes(); // Refetch to get updated data
     } catch (error) {
       console.error('Error updating status:', error);
       toast.error(`Error al actualizar estado: ${error instanceof Error ? error.message : 'Error desconocido'}`);
@@ -60,15 +60,20 @@ export default function AdminQuotesPage() {
   const updatePrice = async (id: string) => {
     try {
       const newPrice = editingPrice[id];
-      if (newPrice === undefined) return;
+      if (newPrice === undefined || newPrice === null) return;
 
       console.log('Updating price:', { id, newPrice });
       const result = await quoteService.update(id, { estimatedPrice: newPrice });
       console.log('Price update result:', result);
       
       toast.success('Precio actualizado');
-      setEditingPrice({ ...editingPrice, [id]: undefined as any });
-      fetchQuotes();
+      
+      // Clear the editing state for this quote
+      const newEditingState = { ...editingPrice };
+      delete newEditingState[id];
+      setEditingPrice(newEditingState);
+      
+      await fetchQuotes(); // Refetch to get updated data
     } catch (error) {
       console.error('Error updating price:', error);
       toast.error(`Error al actualizar precio: ${error instanceof Error ? error.message : 'Error desconocido'}`);
@@ -149,11 +154,14 @@ export default function AdminQuotesPage() {
                           type="number"
                           step="0.01"
                           placeholder={quote.estimatedPrice?.toString() || 'Precio estimado'}
-                          value={editingPrice[quote.id] ?? quote.estimatedPrice ?? ''}
-                          onChange={(e) => setEditingPrice({
-                            ...editingPrice,
-                            [quote.id]: parseFloat(e.target.value)
-                          })}
+                          value={editingPrice[quote.id] !== undefined ? editingPrice[quote.id] : ''}
+                          onChange={(e) => {
+                            const value = e.target.value;
+                            setEditingPrice({
+                              ...editingPrice,
+                              [quote.id]: value === '' ? undefined : parseFloat(value)
+                            });
+                          }}
                           className="pl-9"
                         />
                       </div>
