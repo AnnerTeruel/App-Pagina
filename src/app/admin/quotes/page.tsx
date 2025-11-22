@@ -46,11 +46,14 @@ export default function AdminQuotesPage() {
 
   const updateStatus = async (id: string, status: string) => {
     try {
-      await quoteService.update(id, { status });
+      console.log('Updating quote status:', { id, status });
+      const result = await quoteService.update(id, { status });
+      console.log('Quote update result:', result);
       toast.success('Estado actualizado');
       fetchQuotes();
     } catch (error) {
-      toast.error('Error al actualizar estado');
+      console.error('Error updating status:', error);
+      toast.error(`Error al actualizar estado: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 
@@ -59,12 +62,16 @@ export default function AdminQuotesPage() {
       const newPrice = editingPrice[id];
       if (newPrice === undefined) return;
 
-      await quoteService.update(id, { estimatedPrice: newPrice });
+      console.log('Updating price:', { id, newPrice });
+      const result = await quoteService.update(id, { estimatedPrice: newPrice });
+      console.log('Price update result:', result);
+      
       toast.success('Precio actualizado');
       setEditingPrice({ ...editingPrice, [id]: undefined as any });
       fetchQuotes();
     } catch (error) {
-      toast.error('Error al actualizar precio');
+      console.error('Error updating price:', error);
+      toast.error(`Error al actualizar precio: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 

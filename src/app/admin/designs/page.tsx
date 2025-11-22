@@ -51,15 +51,21 @@ export default function AdminDesignsPage() {
 
   const updateStatus = async (id: string, status: string, type: 'design' | 'request') => {
     try {
+      console.log('Updating:', { id, status, type });
+      
       if (type === 'design') {
-        await customDesignService.update(id, { status });
+        const result = await customDesignService.update(id, { status });
+        console.log('Design update result:', result);
       } else {
-        await designRequestService.update(id, { status });
+        const result = await designRequestService.update(id, { status });
+        console.log('Request update result:', result);
       }
+      
       toast.success('Estado actualizado');
       fetchData();
     } catch (error) {
-      toast.error('Error al actualizar estado');
+      console.error('Error updating status:', error);
+      toast.error(`Error al actualizar estado: ${error instanceof Error ? error.message : 'Error desconocido'}`);
     }
   };
 
