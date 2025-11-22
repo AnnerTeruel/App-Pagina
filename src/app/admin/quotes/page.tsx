@@ -36,8 +36,9 @@ export default function AdminQuotesPage() {
     try {
       console.log('Fetching quotes...');
       const allQuotes = await quoteService.getAllQuotes();
-      console.log('Fetched quotes:', allQuotes);
-      setQuotes(allQuotes || []);
+      console.log('Fetched quotes:', JSON.parse(JSON.stringify(allQuotes))); // Deep log
+      // Force new array reference to trigger re-render
+      setQuotes([...(allQuotes || [])]);
     } catch (error) {
       console.error('Error loading quotes:', error);
       toast.error('Error al cargar cotizaciones');
