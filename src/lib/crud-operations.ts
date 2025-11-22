@@ -114,14 +114,14 @@ export default class CrudOperations<T = any> {
       .from(this.tableName)
       .update(data)
       .eq("id", id)
-      .select()
-      .single();
+      .select();
 
     if (error) {
       throw new Error(`Failed to update ${this.tableName}: ${error.message}`);
     }
 
-    return result;
+    // Return first item from array or null
+    return result && result.length > 0 ? result[0] : null;
   }
 
   /**
