@@ -1,8 +1,5 @@
-
-'use client';
-
 import Link from 'next/link';
-import { ShoppingCart, User, LogOut, LayoutDashboard } from 'lucide-react';
+import { ShoppingCart, User, LogOut, LayoutDashboard, Heart, UserCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { ThemeToggle } from '@/components/ThemeToggle';
 import { useAuth } from '@/contexts/AuthContext';
@@ -69,6 +66,19 @@ export function Navbar() {
                 <div className="px-2 py-1.5 text-xs text-muted-foreground">
                   {user?.email}
                 </div>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem asChild>
+                  <Link href="/profile" className="cursor-pointer">
+                    <UserCircle className="mr-2 h-4 w-4" />
+                    Mi Perfil
+                  </Link>
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <Link href="/wishlist" className="cursor-pointer">
+                    <Heart className="mr-2 h-4 w-4" />
+                    Lista de Deseos
+                  </Link>
+                </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 {isAdmin && (
                   <>

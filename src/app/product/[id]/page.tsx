@@ -20,7 +20,7 @@ export default function ProductDetailPage() {
   const params = useParams();
   const router = useRouter();
   const { addToCart } = useCart();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
   const [product, setProduct] = useState<Product | null>(null);
   const [selectedSize, setSelectedSize] = useState<string>('');
   const [selectedColor, setSelectedColor] = useState<string>('');
@@ -76,17 +76,10 @@ export default function ProductDetailPage() {
       toast.error("Debes iniciar sesión para dejar una reseña");
       return;
     }
-    if (!product) return;
+    if (!product || !user) return;
 
     setIsSubmittingReview(true);
     try {
-      const user = JSON.parse(localStorage.getItem('user') || '{}');
-      
-      if (!user.id) {
-        toast.error("Error de usuario");
-        return;
-      }
-
       await reviewService.createReview({
         productId: product.id,
         userId: user.id,
