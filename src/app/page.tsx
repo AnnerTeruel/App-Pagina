@@ -142,7 +142,7 @@ export default function Home() {
       <section className="py-20 bg-gradient-to-br from-primary to-secondary text-primary-foreground">
         <div className="container mx-auto px-4 text-center">
           <h2 className="text-3xl md:text-4xl font-bold mb-4">
-            ¿Listo para mejorar tu rendimiento?
+            ¿Listo para ver nuestros productos?
           </h2>
           <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
             Unete a varias personas que confia en SportHelem para sublimar ropa y accesorios y demas productos
