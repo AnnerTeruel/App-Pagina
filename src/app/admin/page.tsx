@@ -6,7 +6,20 @@ import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Star, FileText, Package, DollarSign, ShoppingCart, AlertTriangle, Palette } from 'lucide-react';
+import {
+  LayoutDashboard,
+  Package,
+  ShoppingCart,
+  Settings,
+  Plus,
+  BarChart3,
+  Palette,
+  FileText,
+  Users,
+  DollarSign,
+  AlertTriangle,
+  Star
+} from 'lucide-react';
 import { productService } from '@/services/product.service';
 import { orderService } from '@/services/order.service';
 import { toast } from 'sonner';
@@ -292,6 +305,25 @@ export default function AdminPage() {
             </Link>
           </CardContent>
         </Card>
+        {/* Users & Points */}
+        <Link href="/admin/users">
+          <Card className="hover:bg-accent/50 transition-colors cursor-pointer h-full">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Users className="h-5 w-5" />
+                Usuarios y Puntos
+              </CardTitle>
+              <CardDescription>
+                Gestionar usuarios y sistema de puntos
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Ver lista de usuarios, roles y ajustar balances de puntos.
+              </p>
+            </CardContent>
+          </Card>
+        </Link>
       </div>
     </div>
   );
