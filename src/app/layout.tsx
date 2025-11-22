@@ -7,6 +7,7 @@ import GlobalClientEffects from "@/components/GlobalClientEffects";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CartProvider } from "@/contexts/CartContext";
 import { Navbar } from "@/components/Navbar";
+import { WhatsAppButton } from "@/components/WhatsAppButton";
 
 import "./globals.css";
 
@@ -41,6 +42,7 @@ export default function RootLayout({
               <main className="min-h-screen">
                 {children}
               </main>
+              <WhatsAppButton />
               <SonnerToaster position="top-right" />
               <GlobalClientEffects />
             </CartProvider>

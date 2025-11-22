@@ -34,6 +34,9 @@ export function Navbar() {
             <Link href="/shop">
               <Button variant="ghost">Tienda</Button>
             </Link>
+            <Link href="/contact">
+              <Button variant="ghost">Contacto</Button>
+            </Link>
           </div>
         </div>
 
