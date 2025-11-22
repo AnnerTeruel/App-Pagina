@@ -17,8 +17,8 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "SportHelem - Tienda de Artículos Deportivos",
-  description: "Tu tienda online de confianza para equipamiento deportivo de alta calidad",
+  title: "SportHelem - Tienda de sublimacion y venta de articulos",
+  description: "Tu tienda favorita para sublimar ropa y accesorios y demas productos",
 };
 
 export default function RootLayout({

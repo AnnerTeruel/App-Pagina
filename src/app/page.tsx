@@ -145,7 +145,7 @@ export default function Home() {
             ¿Listo para mejorar tu rendimiento?
           </h2>
           <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-            Únete a miles de atletas que confían en SportHelem para su equipamiento deportivo
+            Unete a varias personas que confia en SportHelem para sublimar ropa y accesorios y demas productos
           </p>
           <Link href="/shop">
             <Button size="lg" variant="secondary" className="text-lg">
