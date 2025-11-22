@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { createErrorResponse } from "./crate-reponse";
+import { createErrorResponse } from "./create-response";
 
 /**
  * Validates that required PostgREST environment variables are set
