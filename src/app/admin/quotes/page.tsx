@@ -34,7 +34,9 @@ export default function AdminQuotesPage() {
 
   const fetchQuotes = async () => {
     try {
+      console.log('Fetching quotes...');
       const allQuotes = await quoteService.getAllQuotes();
+      console.log('Fetched quotes:', allQuotes);
       setQuotes(allQuotes || []);
     } catch (error) {
       console.error('Error loading quotes:', error);
