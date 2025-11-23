@@ -17,9 +17,9 @@ import {
   FileText,
   Users,
   DollarSign,
-  AlertTriangle,
   Star,
-  LayoutGrid
+  LayoutGrid,
+  AlertTriangle
 } from 'lucide-react';
 import { productService } from '@/services/product.service';
 import { orderService } from '@/services/order.service';
@@ -302,6 +302,52 @@ export default function AdminPage() {
             <Link href="/admin/quotes">
               <Button className="w-full">
                 Ver Cotizaciones
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <LayoutGrid className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Categorías</CardTitle>
+                <CardDescription>
+                  Gestiona las categorías de productos
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Link href="/admin/categories">
+              <Button className="w-full">
+                Gestionar Categorías
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        <Card className="hover:shadow-lg transition-shadow">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-lg bg-primary/10 flex items-center justify-center">
+                <FileText className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Contenido Inicio</CardTitle>
+                <CardDescription>
+                  Edita el banner y textos del inicio
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Link href="/admin/content">
+              <Button className="w-full">
+                Editar Contenido
               </Button>
             </Link>
           </CardContent>
