@@ -21,9 +21,9 @@ export const uploadService = {
                 throw error;
             }
 
-            const { data: { publicUrl } } = supabase.storage
-                .from('uploads')
-                .getPublicUrl(fileName);
+            // Manually construct the public URL to ensure it's correct
+            // Format: https://[project].supabase.co/storage/v1/object/public/[bucket]/[file]
+            const publicUrl = `${supabaseUrl}/storage/v1/object/public/uploads/hero/${fileName}`;
 
             return publicUrl;
         } catch (error) {
