@@ -12,10 +12,15 @@ import { Card } from '@/components/ui/card';
 import { Filter, Package } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 
+import { useSearchParams } from 'next/navigation';
+
 export default function ShopPage() {
+  const searchParams = useSearchParams();
+  const initialCategory = searchParams.get('category') || 'all';
+  
   const [products, setProducts] = useState<Product[]>([]);
   const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-  const [selectedCategory, setSelectedCategory] = useState<string>('all');
+  const [selectedCategory, setSelectedCategory] = useState<string>(initialCategory);
   const [sortBy, setSortBy] = useState<string>('default');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [availabilityFilter, setAvailabilityFilter] = useState<string>('all');
