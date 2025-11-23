@@ -114,14 +114,14 @@ export default function LoginPage() {
               </div>
               <div className="relative flex justify-center text-xs uppercase">
                 <span className="bg-background px-2 text-muted-foreground">
-                  Cuenta de prueba
+                  
                 </span>
               </div>
             </div>
             <div className="mt-4 p-3 bg-muted rounded-lg text-sm">
-              <p className="font-semibold mb-1">Admin:</p>
-              <p className="text-muted-foreground">Email: admin@sporthelem.com</p>
-              <p className="text-muted-foreground">Contraseña: admin123</p>
+              <p className="font-semibold mb-1"></p>
+              <p className="text-muted-foreground"></p>
+              <p className="text-muted-foreground"></p>
             </div>
           </div>
         </CardContent>
