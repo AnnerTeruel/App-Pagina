@@ -1,10 +1,10 @@
-'use client';
-
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Product } from '@/types';
+import { Product, Category, ContentBlock } from '@/types';
 import { productService } from '@/services/product.service';
+import { categoryService } from '@/services/category.service';
+import { contentService } from '@/services/content.service';
 import { Button } from '@/components/ui/button';
 import { ProductCard } from '@/components/ProductCard';
 import { ArrowRight, Star, Shield, Truck, Sparkles } from 'lucide-react';
@@ -24,45 +24,44 @@ const stagger = {
   }
 };
 
-const categories = [
-  {
-    name: 'Camisas',
-    image: 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80',
-    href: '/shop?category=camisas'
-  },
-  {
-    name: 'Tazas',
-    image: 'https://images.unsplash.com/photo-1514228742587-6b1558fcca3d?w=800&q=80',
-    href: '/shop?category=tazas'
-  },
-  {
-    name: 'Gorras',
-    image: 'https://images.unsplash.com/photo-1588850561407-ed78c282e89b?w=800&q=80',
-    href: '/shop?category=gorras'
-  },
-  {
-    name: 'Sudaderas',
-    image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=800&q=80',
-    href: '/shop?category=sudaderas'
-  }
-];
-
 export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [heroContent, setHeroContent] = useState<any>(null);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
+        // Fetch Products
         const products = await productService.getAllProducts();
         const featured = products.filter((p: Product) => p.isFeatured).slice(0, 4);
         setFeaturedProducts(featured);
+
+        // Fetch Categories
+        const cats = await categoryService.getAllCategories();
+        setCategories(cats || []);
+
+        // Fetch Hero Content
+        const heroBlock = await contentService.getContentBlock('hero_home');
+        if (heroBlock && heroBlock.content) {
+          setHeroContent(heroBlock.content);
+        }
       } catch (error) {
-        console.error("Failed to fetch products", error);
+        console.error("Failed to fetch data", error);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
+
+  // Default Hero Content if DB is empty
+  const hero = heroContent || {
+    title: 'Tu Estilo, Tu Diseño',
+    subtitle: 'Personaliza ropa y accesorios con la mejor calidad de sublimación. Crea productos únicos que expresen quién eres.',
+    image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&q=80',
+    ctaText: 'Explorar Tienda',
+    ctaLink: '/shop'
+  };
 
   return (
     <div className="flex flex-col min-h-screen">
@@ -87,20 +86,17 @@ export default function Home() {
               </motion.div>
               
               <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl font-bold leading-tight tracking-tight">
-                Tu Estilo, <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-secondary">
-                  Tu Diseño
-                </span>
+                {hero.title}
               </motion.h1>
               
               <motion.p variants={fadeInUp} className="text-xl text-muted-foreground max-w-lg">
-                Personaliza ropa y accesorios con la mejor calidad de sublimación. Crea productos únicos que expresen quién eres.
+                {hero.subtitle}
               </motion.p>
               
               <motion.div variants={fadeInUp} className="flex flex-wrap gap-4">
-                <Link href="/shop">
+                <Link href={hero.ctaLink || '/shop'}>
                   <Button size="lg" className="text-lg h-14 px-8 rounded-full shadow-lg shadow-primary/20 hover:shadow-primary/40 transition-all">
-                    Explorar Tienda
+                    {hero.ctaText}
                     <ArrowRight className="ml-2 h-5 w-5" />
                   </Button>
                 </Link>
@@ -119,17 +115,13 @@ export default function Home() {
               transition={{ duration: 0.8, delay: 0.2 }}
             >
               <Image
-                src="https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&q=80"
-                alt="Moda Urbana"
+                src={hero.image}
+                alt="Hero Image"
                 fill
                 className="object-cover"
                 priority
               />
               <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
-              <div className="absolute bottom-8 left-8 text-white">
-                <p className="font-semibold text-lg">Colección Urbana</p>
-                <p className="text-sm opacity-80">Descubre lo nuevo</p>
-              </div>
             </motion.div>
           </div>
         </div>
@@ -151,28 +143,34 @@ export default function Home() {
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {categories.map((category, index) => (
-              <Link href={category.href} key={category.name}>
-                <motion.div 
-                  className="group relative h-80 rounded-2xl overflow-hidden cursor-pointer"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ delay: index * 0.1 }}
-                >
-                  <Image
-                    src={category.image}
-                    alt={category.name}
-                    fill
-                    className="object-cover transition-transform duration-500 group-hover:scale-110"
-                  />
-                  <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
-                  <div className="absolute inset-0 flex items-center justify-center">
-                    <h3 className="text-2xl font-bold text-white tracking-wide">{category.name}</h3>
-                  </div>
-                </motion.div>
-              </Link>
-            ))}
+            {categories.length > 0 ? (
+              categories.map((category, index) => (
+                <Link href={`/shop?category=${category.slug}`} key={category.id}>
+                  <motion.div 
+                    className="group relative h-80 rounded-2xl overflow-hidden cursor-pointer"
+                    initial={{ opacity: 0, y: 20 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true }}
+                    transition={{ delay: index * 0.1 }}
+                  >
+                    <Image
+                      src={category.image || 'https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?w=800&q=80'}
+                      alt={category.name}
+                      fill
+                      className="object-cover transition-transform duration-500 group-hover:scale-110"
+                    />
+                    <div className="absolute inset-0 bg-black/40 group-hover:bg-black/50 transition-colors" />
+                    <div className="absolute inset-0 flex items-center justify-center">
+                      <h3 className="text-2xl font-bold text-white tracking-wide">{category.name}</h3>
+                    </div>
+                  </motion.div>
+                </Link>
+              ))
+            ) : (
+              <div className="col-span-full text-center py-12 text-muted-foreground">
+                No hay categorías activas. Ve al panel de administración para crear algunas.
+              </div>
+            )}
           </div>
         </div>
       </section>

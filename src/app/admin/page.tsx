@@ -18,7 +18,8 @@ import {
   Users,
   DollarSign,
   AlertTriangle,
-  Star
+  Star,
+  LayoutGrid
 } from 'lucide-react';
 import { productService } from '@/services/product.service';
 import { orderService } from '@/services/order.service';

@@ -62,3 +62,24 @@ export interface AuthContextType {
   isAuthenticated: boolean;
   isAdmin: boolean;
 }
+export interface Category {
+  id: string;
+  name: string;
+  slug: string;
+  image: string;
+  is_active: boolean;
+  createdAt: string;
+}
+
+export interface ContentBlock {
+  id: string;
+  section_name: string;
+  content: {
+    title: string;
+    subtitle: string;
+    image: string;
+    ctaText?: string;
+    ctaLink?: string;
+  };
+  updatedAt: string;
+}
