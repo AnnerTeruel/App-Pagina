@@ -12,7 +12,10 @@ export const uploadService = {
 
             const { data, error } = await supabase.storage
                 .from('uploads')
-                .upload(fileName, file);
+                .upload(fileName, file, {
+                    cacheControl: '3600',
+                    upsert: false
+                });
 
             if (error) {
                 throw error;
