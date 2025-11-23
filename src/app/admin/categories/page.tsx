@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Category } from '@/types';
 import { categoryService } from '@/services/category.service';
+import { uploadService } from '@/services/upload.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -12,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Trash2, Eye, EyeOff, Image as ImageIcon } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Image as ImageIcon, Loader2, Upload } from 'lucide-react';
 
 export default function AdminCategoriesPage() {
   const router = useRouter();
@@ -20,6 +21,7 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
   
   // Form state
   const [newName, setNewName] = useState('');
@@ -53,6 +55,23 @@ export default function AdminCategoriesPage() {
       checkAuthAndFetch();
     }
   }, [currentUser]);
+
+  const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    try {
+      setUploading(true);
+      const url = await uploadService.uploadFile(file, 'categories');
+      setNewImage(url);
+      toast.success('Imagen subida correctamente');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast.error('Error al subir imagen');
+    } finally {
+      setUploading(false);
+    }
+  };
 
   const handleCreate = async () => {
     if (!newName || !newSlug) {
@@ -149,14 +168,25 @@ export default function AdminCategoriesPage() {
                 />
               </div>
               <div className="space-y-2">
-                <Label>URL de Imagen</Label>
-                <Input 
-                  value={newImage} 
-                  onChange={(e) => setNewImage(e.target.value)}
-                  placeholder="https://..." 
-                />
+                <Label>Imagen</Label>
+                <div className="flex gap-2 items-center">
+                  <Input 
+                    type="file" 
+                    accept="image/*"
+                    onChange={handleFileUpload}
+                    disabled={uploading}
+                  />
+                  {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+                </div>
+                {newImage && (
+                  <div className="mt-2 relative h-20 w-20 rounded overflow-hidden border">
+                    <img src={newImage} alt="Preview" className="object-cover w-full h-full" />
+                  </div>
+                )}
               </div>
-              <Button onClick={handleCreate} className="w-full">Guardar</Button>
+              <Button onClick={handleCreate} className="w-full" disabled={uploading}>
+                {uploading ? 'Subiendo...' : 'Guardar'}
+              </Button>
             </div>
           </DialogContent>
         </Dialog>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { contentService } from '@/services/content.service';
+import { uploadService } from '@/services/upload.service';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -122,12 +123,27 @@ export default function AdminContentPage() {
             </div>
 
             <div className="space-y-2">
-              <Label>URL de Imagen</Label>
-              <div className="flex gap-4">
+              <Label>Imagen de Fondo</Label>
+              <div className="flex gap-4 items-center">
                 <Input 
-                  value={heroImage} 
-                  onChange={(e) => setHeroImage(e.target.value)} 
-                  placeholder="https://..." 
+                  type="file" 
+                  accept="image/*"
+                  onChange={async (e) => {
+                    if (!e.target.files || e.target.files.length === 0) return;
+                    const file = e.target.files[0];
+                    try {
+                      setSaving(true);
+                      const url = await uploadService.uploadFile(file, 'hero');
+                      setHeroImage(url);
+                      toast.success('Imagen subida correctamente');
+                    } catch (error) {
+                      console.error('Error uploading file:', error);
+                      toast.error('Error al subir imagen');
+                    } finally {
+                      setSaving(false);
+                    }
+                  }}
+                  disabled={saving}
                 />
               </div>
               {heroImage && (

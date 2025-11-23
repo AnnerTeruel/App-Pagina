@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Product } from '@/types';
+import { Product, Category } from '@/types';
 import { productService } from '@/services/product.service';
+import { categoryService } from '@/services/category.service';
 import { ProductCard } from '@/components/ProductCard';
 import { SearchBar } from '@/components/SearchBar';
 import { Button } from '@/components/ui/button';
@@ -18,23 +19,25 @@ export default function ShopPage() {
   const [sortBy, setSortBy] = useState<string>('default');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [availabilityFilter, setAvailabilityFilter] = useState<string>('all');
-  const [categories, setCategories] = useState<string[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const fetchData = async () => {
       try {
-        const allProducts = await productService.getAllProducts();
+        const [allProducts, allCategories] = await Promise.all([
+          productService.getAllProducts(),
+          categoryService.getAllCategories()
+        ]);
+        
         setProducts(allProducts);
         setFilteredProducts(allProducts);
-
-        const uniqueCategories = Array.from(new Set(allProducts.map((p: Product) => p.category)));
-        setCategories(uniqueCategories);
+        setCategories(allCategories || []);
       } catch (error) {
-        console.error("Failed to fetch products", error);
+        console.error("Failed to fetch data", error);
       }
     };
 
-    fetchProducts();
+    fetchData();
   }, []);
 
   useEffect(() => {
@@ -52,7 +55,15 @@ export default function ShopPage() {
 
     // Category filter
     if (selectedCategory !== 'all') {
-      filtered = filtered.filter(p => p.category === selectedCategory);
+      filtered = filtered.filter(p => {
+        // Try to match by slug first
+        const cat = categories.find(c => c.slug === selectedCategory);
+        if (cat) {
+          return p.category.toLowerCase() === cat.name.toLowerCase();
+        }
+        // Fallback to direct match (legacy)
+        return p.category === selectedCategory;
+      });
     }
 
     // Availability filter
@@ -78,7 +89,7 @@ export default function ShopPage() {
     }
 
     setFilteredProducts(filtered);
-  }, [selectedCategory, sortBy, products, searchQuery, availabilityFilter]);
+  }, [selectedCategory, sortBy, products, searchQuery, availabilityFilter, categories]);
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -116,12 +127,12 @@ export default function ShopPage() {
                   </Button>
                   {categories.map((category) => (
                     <Button
-                      key={category}
-                      variant={selectedCategory === category ? 'default' : 'outline'}
+                      key={category.id}
+                      variant={selectedCategory === category.slug ? 'default' : 'outline'}
                       className="w-full justify-start"
-                      onClick={() => setSelectedCategory(category)}
+                      onClick={() => setSelectedCategory(category.slug)}
                     >
-                      {category}
+                      {category.name}
                     </Button>
                   ))}
                 </div>
