@@ -116,10 +116,11 @@ export default function ReportsPage() {
         `$${order.total.toFixed(2)}`,
       ]),
     ]
-      .map(row => row.join(','))
+      .map(row => row.map(field => `"${String(field).replace(/"/g, '""')}"`).join(','))
       .join('\n');
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    // Add BOM for Excel to recognize UTF-8
+    const blob = new Blob(['\uFEFF' + csvContent], { type: 'text/csv;charset=utf-8;' });
     const link = document.createElement('a');
     link.href = URL.createObjectURL(blob);
     link.download = `reporte_${selectedYear}_${selectedMonth}.csv`;
