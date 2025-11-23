@@ -66,7 +66,8 @@ export default function AdminUsersPage() {
   };
 
   useEffect(() => {
-    if (currentUser?.isAdmin) {
+    const isUserAdmin = (currentUser?.role && currentUser.role.trim().toLowerCase() === 'admin') || currentUser?.isAdmin;
+    if (isUserAdmin) {
       fetchUsers();
     }
   }, [currentUser]);
