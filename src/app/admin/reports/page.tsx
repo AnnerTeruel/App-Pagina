@@ -5,38 +5,53 @@ import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 import { Order } from '@/types';
-import { storage } from '@/lib/storage';
+import { orderService } from '@/services/order.service';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { DollarSign, ShoppingBag, TrendingUp, Download } from 'lucide-react';
+import { toast } from 'sonner';
 
 export default function ReportsPage() {
   const router = useRouter();
-  const { isAdmin, isAuthenticated } = useAuth();
+  const { user: currentUser } = useAuth();
   const [orders, setOrders] = useState<Order[]>([]);
   const [selectedMonth, setSelectedMonth] = useState<string>('');
   const [selectedYear, setSelectedYear] = useState<string>('');
   const [filteredOrders, setFilteredOrders] = useState<Order[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!isAuthenticated) {
-      router.push('/login');
-      return;
-    }
-    if (!isAdmin) {
-      router.push('/');
-      return;
-    }
+    const checkAuthAndFetch = async () => {
+      // Robust admin check
+      const isAdmin = (currentUser?.role && currentUser.role.trim().toLowerCase() === 'admin') || currentUser?.isAdmin;
 
-    const allOrders = storage.getOrders();
-    setOrders(allOrders);
+      if (!isAdmin) {
+        // router.push('/'); // Don't redirect immediately to avoid flash
+        return;
+      }
 
-    const currentDate = new Date();
-    setSelectedMonth((currentDate.getMonth() + 1).toString());
-    setSelectedYear(currentDate.getFullYear().toString());
-  }, [isAuthenticated, isAdmin, router]);
+      try {
+        setLoading(true);
+        const allOrders = await orderService.getAllOrders();
+        setOrders(allOrders || []);
+
+        const currentDate = new Date();
+        setSelectedMonth((currentDate.getMonth() + 1).toString());
+        setSelectedYear(currentDate.getFullYear().toString());
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+        toast.error('Error al cargar los reportes');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (currentUser) {
+      checkAuthAndFetch();
+    }
+  }, [currentUser, router]);
 
   useEffect(() => {
     if (!selectedMonth || !selectedYear) return;
@@ -52,8 +67,19 @@ export default function ReportsPage() {
     setFilteredOrders(filtered);
   }, [selectedMonth, selectedYear, orders]);
 
+  const isAdmin = (currentUser?.role && currentUser.role.trim().toLowerCase() === 'admin') || currentUser?.isAdmin;
+
   if (!isAdmin) {
-    return null;
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <h1 className="text-2xl font-bold text-red-500 mb-4">Acceso Denegado</h1>
+        <p className="text-muted-foreground">No tienes permisos de administrador para ver esta página.</p>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <div className="container mx-auto px-4 py-8 text-center">Cargando reportes...</div>;
   }
 
   const totalTransactions = filteredOrders.length;

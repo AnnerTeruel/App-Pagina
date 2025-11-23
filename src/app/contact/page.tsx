@@ -151,7 +151,7 @@ export default function ContactPage() {
                   <Phone className="h-5 w-5 text-primary mt-0.5" />
                   <div>
                     <p className="font-medium">Teléfono</p>
-                    <p className="text-sm text-muted-foreground">+52 123 456 7890</p>
+                    <p className="text-sm text-muted-foreground">+504 9223 6259</p>
                   </div>
                 </div>
 
