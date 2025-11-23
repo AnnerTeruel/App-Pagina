@@ -199,14 +199,85 @@ export default function Home() {
         </div>
       </section>
 
+      {/* How It Works Section */}
+      <section className="py-24 bg-gradient-to-br from-primary/5 via-background to-secondary/5 relative overflow-hidden">
+        <div className="absolute inset-0 gradient-animate opacity-10"></div>
+        <div className="container mx-auto px-4 relative z-10">
+          <motion.div
+            className="text-center mb-16"
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+          >
+            <h2 className="text-4xl md:text-5xl font-bold mb-4">¿Cómo Funciona?</h2>
+            <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+              Tres simples pasos para obtener tus productos personalizados
+            </p>
+          </motion.div>
+
+          <div className="grid md:grid-cols-3 gap-8 relative">
+            {/* Connecting Line */}
+            <div className="hidden md:block absolute top-1/2 left-0 right-0 h-0.5 bg-gradient-to-r from-primary via-secondary to-primary opacity-30 -translate-y-1/2"></div>
+
+            {[
+              {
+                step: '01',
+                icon: '🛍️',
+                title: 'Elige tu Producto',
+                description: 'Selecciona de nuestra amplia variedad de productos: camisas, tazas, gorras y más.'
+              },
+              {
+                step: '02',
+                icon: '🎨',
+                title: 'Personaliza el Diseño',
+                description: 'Sube tu diseño o elige de nuestra galería. Ajusta colores, tamaños y detalles.'
+              },
+              {
+                step: '03',
+                icon: '📦',
+                title: 'Recibe en Casa',
+                description: 'Producimos con la mejor calidad y enviamos directo a tu puerta en 24-48 horas.'
+              }
+            ].map((item, index) => (
+              <motion.div
+                key={index}
+                className="relative"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ delay: index * 0.2 }}
+              >
+                <div className="glass rounded-3xl p-8 hover:shadow-2xl transition-all duration-300 relative z-10 h-full">
+                  {/* Step Number */}
+                  <div className="absolute -top-4 -left-4 w-12 h-12 rounded-full bg-primary text-primary-foreground flex items-center justify-center font-bold text-lg shadow-lg">
+                    {item.step}
+                  </div>
+
+                  {/* Icon */}
+                  <div className="text-6xl mb-6 float">
+                    {item.icon}
+                  </div>
+
+                  {/* Content */}
+                  <h3 className="text-2xl font-bold mb-3">{item.title}</h3>
+                  <p className="text-muted-foreground leading-relaxed">
+                    {item.description}
+                  </p>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Features Section */}
       <section className="py-24">
         <div className="container mx-auto px-4">
           <div className="grid md:grid-cols-3 gap-12">
             {[
-              { icon: Truck, title: 'Envío Rápido', desc: 'Entrega en 24-48 horas en toda la región' },
-              { icon: Shield, title: 'Garantía de Calidad', desc: 'Productos certificados y garantizados' },
-              { icon: Star, title: 'Mejor Precio', desc: 'Precios competitivos y descuentos por volumen' }
+              { icon: Truck, title: 'Envío Rápido', desc: 'Entrega en 24-48 horas en toda la región', delay: '' },
+              { icon: Shield, title: 'Garantía de Calidad', desc: 'Productos certificados y garantizados', delay: 'float-delay-1' },
+              { icon: Star, title: 'Mejor Precio', desc: 'Precios competitivos y descuentos por volumen', delay: 'float-delay-2' }
             ].map((feature, index) => (
               <motion.div 
                 key={index}
@@ -216,7 +287,7 @@ export default function Home() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.2 }}
               >
-                <div className="h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-4">
+                <div className={`h-20 w-20 rounded-full bg-primary/10 flex items-center justify-center mb-4 ${feature.delay}`}>
                   <feature.icon className="h-10 w-10 text-primary" />
                 </div>
                 <h3 className="text-2xl font-semibold">{feature.title}</h3>
