@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
-import { Trophy, Gift, Star, ArrowRight, Lock } from 'lucide-react';
+import { Trophy, Gift, Star, ArrowRight, Lock, Copy, Check } from 'lucide-react';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
 
@@ -18,6 +18,9 @@ export default function RewardsPage() {
   const [currentLevel, setCurrentLevel] = useState<UserLevel | null>(null);
   const [nextLevel, setNextLevel] = useState<UserLevel | null>(null);
   const [loading, setLoading] = useState(true);
+  const [redeeming, setRedeeming] = useState(false);
+  const [generatedCoupon, setGeneratedCoupon] = useState<string | null>(null);
+  const [copiedCoupon, setCopiedCoupon] = useState(false);
 
   useEffect(() => {
     const fetchPoints = async () => {
@@ -49,6 +52,53 @@ export default function RewardsPage() {
     return Math.min(100, Math.max(0, (progress / range) * 100));
   };
 
+  const handleRedeem = async (reward: { points: number; discount: number; title: string }) => {
+    if (!user?.id) {
+      toast.error('Debes iniciar sesión para canjear recompensas');
+      return;
+    }
+
+    if (points < reward.points) {
+      toast.error('No tienes suficientes puntos');
+      return;
+    }
+
+    try {
+      setRedeeming(true);
+      
+      // Deduct points
+      await pointsService.redeemPoints(user.id, reward.points, `Canje de ${reward.title}`);
+      
+      // Generate coupon code
+      const couponCode = `REWARD${reward.discount}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      setGeneratedCoupon(couponCode);
+      
+      // Update local points
+      const newPoints = points - reward.points;
+      setPoints(newPoints);
+      setCurrentLevel(pointsService.calculateLevel(newPoints));
+      setNextLevel(pointsService.getNextLevel(newPoints));
+      
+      toast.success(`¡Cupón generado! Código: ${couponCode}`, {
+        duration: 10000,
+      });
+    } catch (error) {
+      console.error('Error redeeming reward:', error);
+      toast.error('Error al canjear la recompensa. Intenta de nuevo.');
+    } finally {
+      setRedeeming(false);
+    }
+  };
+
+  const copyCouponToClipboard = () => {
+    if (generatedCoupon) {
+      navigator.clipboard.writeText(generatedCoupon);
+      setCopiedCoupon(true);
+      toast.success('Código copiado al portapapeles');
+      setTimeout(() => setCopiedCoupon(false), 2000);
+    }
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="text-center mb-12">
@@ -74,6 +124,40 @@ export default function RewardsPage() {
         </Card>
       ) : (
         <div className="grid gap-8">
+          {/* Generated Coupon Alert */}
+          {generatedCoupon && (
+            <Card className="bg-green-500/10 border-green-500/20">
+              <CardContent className="p-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-bold text-green-700 dark:text-green-400 mb-1">
+                      ¡Cupón Generado Exitosamente!
+                    </h3>
+                    <p className="text-sm text-muted-foreground mb-2">
+                      Usa este código en tu próxima compra
+                    </p>
+                    <div className="flex items-center gap-2">
+                      <code className="bg-background px-4 py-2 rounded-lg font-mono text-lg font-bold">
+                        {generatedCoupon}
+                      </code>
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={copyCouponToClipboard}
+                      >
+                        {copiedCoupon ? (
+                          <Check className="h-4 w-4" />
+                        ) : (
+                          <Copy className="h-4 w-4" />
+                        )}
+                      </Button>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          )}
+
           {/* Status Card */}
           <Card className="bg-gradient-to-r from-primary/10 to-primary/5 border-primary/20">
             <CardContent className="p-8">
@@ -161,10 +245,11 @@ export default function RewardsPage() {
                   <CardContent>
                     <Button 
                       className="w-full" 
-                      disabled={points < reward.points}
+                      disabled={points < reward.points || redeeming}
                       variant={points >= reward.points ? 'default' : 'outline'}
+                      onClick={() => handleRedeem(reward)}
                     >
-                      {points >= reward.points ? 'Canjear' : 'Puntos insuficientes'}
+                      {redeeming ? 'Canjeando...' : points >= reward.points ? 'Canjear' : 'Puntos insuficientes'}
                     </Button>
                   </CardContent>
                 </Card>
