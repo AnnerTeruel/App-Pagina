@@ -6,6 +6,7 @@ import { useCart } from '@/contexts/CartContext';
 import { useAuth } from '@/contexts/AuthContext';
 import { orderService } from '@/services/order.service';
 import { productService } from '@/services/product.service';
+import { couponService, Coupon } from '@/services/coupon.service';
 import { Order } from '@/types';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -14,7 +15,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
-import { CreditCard, Banknote, Building2 } from 'lucide-react';
+import { CreditCard, Banknote, Building2, Tag, X } from 'lucide-react';
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -31,10 +32,47 @@ export default function CheckoutPage() {
   });
 
   const [paymentMethod, setPaymentMethod] = useState<'visa' | 'cash' | 'transfer' | 'debit' | 'credit'>('visa');
+  const [couponCode, setCouponCode] = useState('');
+  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [validatingCoupon, setValidatingCoupon] = useState(false);
 
   const handleInputChange = (field: string, value: string) => {
     setShippingData(prev => ({ ...prev, [field]: value }));
   };
+
+  const handleApplyCoupon = async () => {
+    if (!couponCode.trim()) {
+      toast.error('Ingresa un código de cupón');
+      return;
+    }
+
+    if (!user) {
+      toast.error('Debes iniciar sesión para usar cupones');
+      return;
+    }
+
+    setValidatingCoupon(true);
+
+    try {
+      const coupon = await couponService.validateCoupon(couponCode.trim(), user.id);
+      setAppliedCoupon(coupon);
+      toast.success(`¡Cupón aplicado! Descuento de $${coupon.discount}`);
+    } catch (error) {
+      console.error('Error validating coupon:', error);
+      toast.error('Cupón inválido o ya utilizado');
+    } finally {
+      setValidatingCoupon(false);
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    setAppliedCoupon(null);
+    setCouponCode('');
+    toast.info('Cupón removido');
+  };
+
+  const discount = appliedCoupon ? appliedCoupon.discount : 0;
+  const finalTotal = Math.max(0, totalPrice - discount);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -56,7 +94,7 @@ export default function CheckoutPage() {
       const orderData: Omit<Order, 'id'> = {
         userId: user.id,
         items: cart,
-        total: totalPrice,
+        total: finalTotal,
         paymentMethod,
         status: 'completed' as const,
         createdAt: new Date().toISOString(),
@@ -64,6 +102,11 @@ export default function CheckoutPage() {
       };
 
       const createdOrder = await orderService.createOrder(orderData);
+
+      // Mark coupon as used if applied
+      if (appliedCoupon) {
+        await couponService.applyCoupon(appliedCoupon.code, createdOrder.id);
+      }
 
       // Update inventory for each product
       for (const item of cart) {
@@ -244,6 +287,55 @@ export default function CheckoutPage() {
                   <span className="text-muted-foreground">Subtotal</span>
                   <span className="font-medium">${totalPrice.toFixed(2)}</span>
                 </div>
+
+                {/* Coupon Section */}
+                <div className="space-y-2">
+                  {!appliedCoupon ? (
+                    <div className="flex gap-2">
+                      <Input
+                        placeholder="Código de cupón"
+                        value={couponCode}
+                        onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
+                        disabled={validatingCoupon}
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={handleApplyCoupon}
+                        disabled={validatingCoupon || !couponCode.trim()}
+                      >
+                        <Tag className="h-4 w-4 mr-2" />
+                        {validatingCoupon ? 'Validando...' : 'Aplicar'}
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-between p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                      <div className="flex items-center gap-2">
+                        <Tag className="h-4 w-4 text-green-600" />
+                        <div>
+                          <p className="text-sm font-medium">Cupón aplicado</p>
+                          <p className="text-xs text-muted-foreground">{appliedCoupon.code}</p>
+                        </div>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={handleRemoveCoupon}
+                      >
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  )}
+                </div>
+
+                {appliedCoupon && (
+                  <div className="flex justify-between text-sm text-green-600">
+                    <span>Descuento</span>
+                    <span className="font-medium">-${discount.toFixed(2)}</span>
+                  </div>
+                )}
+
                 <div className="flex justify-between text-sm">
                   <span className="text-muted-foreground">Envío</span>
                   <span className="font-medium">Gratis</span>
@@ -253,7 +345,7 @@ export default function CheckoutPage() {
 
                 <div className="flex justify-between text-lg font-bold">
                   <span>Total</span>
-                  <span className="text-primary">${totalPrice.toFixed(2)}</span>
+                  <span className="text-primary">${finalTotal.toFixed(2)}</span>
                 </div>
 
                 <Button type="submit" size="lg" className="w-full" disabled={isProcessing}>

@@ -73,21 +73,6 @@ alter table orders enable row level security;
 create policy "Orders are viewable by everyone" on orders for select using (true);
 create policy "Orders can insert" on orders for insert with check (true);
 
--- REVIEWS TABLE
-create table if not exists reviews (
-  id uuid default uuid_generate_v4() primary key,
-  "productId" uuid references products(id) on delete cascade,
-  "userId" uuid references users(id) on delete cascade,
-  rating integer check (rating >= 1 and rating <= 5),
-  comment text,
-  "userName" text, -- Store name to avoid complex joins for now
-  "createdAt" timestamp with time zone default timezone('utc'::text, now())
-);
-
-alter table reviews enable row level security;
-create policy "Reviews are viewable by everyone" on reviews for select using (true);
-create policy "Authenticated users can insert reviews" on reviews for insert with check (auth.role() = 'authenticated' OR true); -- Allow all for custom auth
-
 -- WISHLIST TABLE
 create table if not exists wishlist (
   id uuid default uuid_generate_v4() primary key,
@@ -182,6 +167,50 @@ create table if not exists quotes (
 );
 
 alter table quotes enable row level security;
-create policy "Users can view their own quotes" on quotes for select using (true);
-create policy "Users can insert quotes" on quotes for insert with check (true);
-create policy "Admins can view all quotes" on quotes for select using (true);
+create policy \"Users can view their own quotes\" on quotes for select using (true);
+create policy \"Users can insert quotes\" on quotes for insert with check (true);
+create policy \"Admins can view all quotes\" on quotes for select using (true);
+
+-- COUPONS TABLE
+create table if not exists coupons (
+  id uuid default uuid_generate_v4() primary key,
+  code text unique not null,
+  "userId" uuid references users(id) on delete cascade,
+  discount numeric not null check (discount > 0),
+  "isUsed" boolean default false,
+  "usedAt" timestamp with time zone,
+  "orderId" uuid references orders(id) on delete set null,
+  "createdAt" timestamp with time zone default timezone('utc'::text, now())
+);
+
+-- RLS Policies for Coupons
+alter table coupons enable row level security;
+
+-- Users can view their own coupons
+create policy "Users can view own coupons"
+on coupons for select
+using (true);
+
+-- Users can create coupons (through redemption)
+create policy "Users can create coupons"
+on coupons for insert
+with check (true);
+
+-- Users can update their own coupons (mark as used)
+create policy "Users can update own coupons"
+on coupons for update
+using (true);
+
+-- REVIEWS TABLE
+create table if not exists reviews (
+  id uuid default uuid_generate_v4() primary key,
+  "productId" uuid references products(id) on delete cascade,
+  "userId" uuid references users(id) on delete cascade,
+  rating integer not null check (rating >= 1 and rating <= 5),
+  comment text,
+  "createdAt" timestamp with time zone default timezone('utc'::text, now())
+);
+
+alter table reviews enable row level security;
+create policy "Reviews are viewable by everyone" on reviews for select using (true);
+create policy "Authenticated users can insert reviews" on reviews for insert with check (true);

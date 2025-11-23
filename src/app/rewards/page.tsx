@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { pointsService, UserLevel } from '@/services/points.service';
+import { couponService } from '@/services/coupon.service';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -66,11 +67,15 @@ export default function RewardsPage() {
     try {
       setRedeeming(true);
       
+      // Generate coupon code
+      const couponCode = `REWARD${reward.discount}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
+      
+      // Save coupon to database
+      await couponService.createCoupon(user.id, couponCode, reward.discount);
+      
       // Deduct points
       await pointsService.redeemPoints(user.id, reward.points, `Canje de ${reward.title}`);
       
-      // Generate coupon code
-      const couponCode = `REWARD${reward.discount}-${Math.random().toString(36).substring(2, 8).toUpperCase()}`;
       setGeneratedCoupon(couponCode);
       
       // Update local points
