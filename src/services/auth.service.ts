@@ -12,7 +12,9 @@ class AuthService extends CrudOperations {
     }
 
     async register(user: Omit<User, "id" | "createdAt">): Promise<User> {
-        return await this.create(user);
+        const { isAdmin, ...userData } = user;
+        const newUser = await this.create(userData);
+        return { ...newUser, isAdmin: newUser.role === 'admin' };
     }
 
     async getUserByEmail(email: string): Promise<User | null> {
