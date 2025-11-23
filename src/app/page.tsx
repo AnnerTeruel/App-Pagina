@@ -30,6 +30,7 @@ export default function Home() {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [heroContent, setHeroContent] = useState<any>(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -47,23 +48,44 @@ export default function Home() {
         const heroBlock = await contentService.getContentBlock('hero_home');
         if (heroBlock && heroBlock.content) {
           setHeroContent(heroBlock.content);
+        } else {
+          // Set default if no content in DB
+          setHeroContent({
+            title: 'Tu Estilo, Tu Diseño',
+            subtitle: 'Personaliza ropa y accesorios con la mejor calidad de sublimación. Crea productos únicos que expresen quién eres.',
+            image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&q=80',
+            ctaText: 'Explorar Tienda',
+            ctaLink: '/shop'
+          });
         }
       } catch (error) {
         console.error("Failed to fetch data", error);
+        // Set default on error
+        setHeroContent({
+          title: 'Tu Estilo, Tu Diseño',
+          subtitle: 'Personaliza ropa y accesorios con la mejor calidad de sublimación. Crea productos únicos que expresen quién eres.',
+          image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&q=80',
+          ctaText: 'Explorar Tienda',
+          ctaLink: '/shop'
+        });
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchData();
   }, []);
 
-  // Default Hero Content if DB is empty
-  const hero = heroContent || {
-    title: 'Tu Estilo, Tu Diseño',
-    subtitle: 'Personaliza ropa y accesorios con la mejor calidad de sublimación. Crea productos únicos que expresen quién eres.',
-    image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?w=1200&q=80',
-    ctaText: 'Explorar Tienda',
-    ctaLink: '/shop'
-  };
+  // Don't render until content is loaded
+  if (isLoading || !heroContent) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+      </div>
+    );
+  }
+
+  const hero = heroContent;
 
   return (
     <div className="flex flex-col min-h-screen">
