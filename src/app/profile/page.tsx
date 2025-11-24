@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
+import { useCart } from '@/contexts/CartContext';
 import { orderService } from '@/services/order.service';
 import { quoteService } from '@/services/quote.service';
 import { pointsService } from '@/services/points.service';
@@ -10,11 +11,12 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
-import { User, Package, MapPin, CreditCard, FileText, DollarSign, Trophy, Star } from 'lucide-react';
+import { User, Package, MapPin, CreditCard, FileText, DollarSign, Trophy, Star, RefreshCw } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function ProfilePage() {
   const { user, isAuthenticated } = useAuth();
+  const { addToCart } = useCart();
   const router = useRouter();
   const [orders, setOrders] = useState<any[]>([]);
   const [quotes, setQuotes] = useState<any[]>([]);
@@ -78,6 +80,28 @@ export default function ProfilePage() {
       default:
         return status;
     }
+  };
+
+  const handleReorder = (order: any) => {
+    if (!order.items || order.items.length === 0) {
+      toast.error('Este pedido no tiene productos');
+      return;
+    }
+
+    order.items.forEach((item: any) => {
+      addToCart({
+        productId: item.productId,
+        name: item.name,
+        price: item.price,
+        quantity: item.quantity,
+        image: item.image,
+        size: item.size,
+        color: item.color
+      });
+    });
+
+    toast.success(`${order.items.length} productos agregados al carrito`);
+    router.push('/cart');
   };
 
   return (
@@ -223,12 +247,24 @@ export default function ProfilePage() {
 
                       <Separator className="my-3" />
 
-                      {/* Total */}
-                      <div className="flex justify-between items-center">
+                      {/* Total and Actions */}
+                      <div className="flex justify-between items-center pt-3">
                         <span className="font-semibold">Total</span>
-                        <span className="text-lg font-bold text-primary">
+                        <span className="text-xl font-bold text-primary">
                           ${order.total?.toFixed(2)}
                         </span>
+                      </div>
+
+                      {/* Reorder Button */}
+                      <div className="mt-4">
+                        <Button
+                          variant="outline"
+                          className="w-full"
+                          onClick={() => handleReorder(order)}
+                        >
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Volver a Pedir
+                        </Button>
                       </div>
                     </div>
                   ))}

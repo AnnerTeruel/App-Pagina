@@ -20,6 +20,13 @@ const poppins = Poppins({
 export const metadata: Metadata = {
   title: "SportHelem - Tienda de sublimacion y venta de articulos",
   description: "Tu tienda favorita para sublimar ropa y accesorios y demas productos",
+  manifest: "/manifest.json",
+  themeColor: "#8b5cf6",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "default",
+    title: "SportHelem",
+  },
 };
 
 export default function RootLayout({
@@ -29,6 +36,27 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="es" suppressHydrationWarning>
+      <head>
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if ('serviceWorker' in navigator) {
+                window.addEventListener('load', () => {
+                  navigator.serviceWorker.register('/sw.js').then(
+                    (registration) => {
+                      console.log('SW registered:', registration);
+                    },
+                    (error) => {
+                      console.log('SW registration failed:', error);
+                    }
+                  );
+                });
+              }
+            `,
+          }}
+        />
+      </head>
       <body className={`${poppins.variable} antialiased font-sans`}>
         <ThemeProvider
           attribute="class"

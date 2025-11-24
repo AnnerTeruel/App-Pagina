@@ -2,6 +2,7 @@ import CrudOperations from "@/lib/crud-operations";
 import { Order } from "@/types";
 import { pointsService } from './points.service';
 import { validateEnv } from "@/lib/api-utils";
+import { createPostgrestClient } from '@/lib/postgrest';
 
 class OrderService extends CrudOperations {
     constructor() {
@@ -35,14 +36,6 @@ class OrderService extends CrudOperations {
                 }
             } catch (pointsError: any) {
                 console.error('Error awarding points:', pointsError);
-                // Temporary debug toast
-                // @ts-ignore
-                if (typeof window !== 'undefined') {
-                    // @ts-ignore
-                    import('sonner').then(({ toast }) => {
-                        toast.error(`Error al sumar puntos: ${pointsError?.message || 'Unknown error'}`);
-                    });
-                }
             }
         }
 
@@ -55,6 +48,25 @@ class OrderService extends CrudOperations {
 
     async getAllOrders() {
         return await this.findMany({}, { orderBy: { column: "createdAt", direction: "desc" } });
+    }
+
+    /**
+     * Get all orders for a specific user (alias for getOrdersByUserId)
+     */
+    async getUserOrders(userId: string): Promise<Order[]> {
+        const client = createPostgrestClient();
+
+        const { data, error } = await client
+            .from('orders')
+            .select('*')
+            .eq('userId', userId)
+            .order('createdAt', { ascending: false });
+
+        if (error) {
+            throw new Error(`Failed to get user orders: ${error.message}`);
+        }
+
+        return data || [];
     }
 }
 
