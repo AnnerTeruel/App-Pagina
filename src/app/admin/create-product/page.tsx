@@ -99,7 +99,7 @@ export default function CreateProductAdminPage() {
     setColorImages(updatedColorImages);
   };
 
-  // Generate unique barcode on component mount
+  // Generate unique barcode on component mount (optional)
   useEffect(() => {
     const generateNewBarcode = async () => {
       try {
@@ -111,10 +111,11 @@ export default function CreateProductAdminPage() {
       }
     };
 
+    // Only auto-generate if barcode is empty
     if (!barcode) {
       generateNewBarcode();
     }
-  }, []);
+  }, []); // Run once on mount
 
   // Handle barcode scan
   const handleBarcodeScan = async (scannedCode: string) => {
@@ -229,7 +230,7 @@ export default function CreateProductAdminPage() {
                   <Input
                     value={barcode}
                     onChange={(e) => setBarcode(e.target.value)}
-                    placeholder="SH-XXXXXXXXXX"
+                    placeholder="SH-XXXXXXXXXX o código externo"
                     readOnly={isSearching}
                   />
                   <Button
@@ -242,7 +243,7 @@ export default function CreateProductAdminPage() {
                 </div>
 
                 <p className="text-xs text-muted-foreground">
-                  Escanea un producto existente para auto-completar los datos, o usa el código generado para un producto nuevo.
+                  Puedes usar códigos generados (SH-) o códigos externos. Escanea para buscar productos existentes o ingresa manualmente.
                 </p>
               </div>
 

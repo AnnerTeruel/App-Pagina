@@ -19,7 +19,8 @@ import {
   DollarSign,
   Star,
   LayoutGrid,
-  AlertTriangle
+  AlertTriangle,
+  Scan
 } from 'lucide-react';
 import { productService } from '@/services/product.service';
 import { orderService } from '@/services/order.service';
@@ -169,6 +170,30 @@ export default function AdminPage() {
 
       {/* Admin Actions */}
       <div className="grid md:grid-cols-2 gap-6">
+        <Card className="hover:shadow-lg transition-shadow border-primary/20">
+          <CardHeader>
+            <div className="flex items-center gap-3">
+              <div className="h-12 w-12 rounded-lg bg-primary/20 flex items-center justify-center">
+                <Scan className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <CardTitle>Inventario Rápido</CardTitle>
+                <CardDescription>
+                  Escanea códigos de barras para actualizar inventario
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <Link href="/admin/inventory">
+              <Button className="w-full">
+                <Scan className="mr-2 h-4 w-4" />
+                Abrir Scanner
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
         <Card className="hover:shadow-lg transition-shadow">
           <CardHeader>
             <div className="flex items-center gap-3">
