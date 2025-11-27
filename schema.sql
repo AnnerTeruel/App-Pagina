@@ -16,8 +16,12 @@ create table if not exists products (
   materials text[], -- Array of strings
   "colorImages" jsonb, -- JSON array for color-image mapping
   "isFeatured" boolean default false,
+  barcode text unique, -- Barcode for product scanning
   "createdAt" timestamp with time zone default timezone('utc'::text, now())
 );
+
+-- Index for barcode lookups
+create index if not exists idx_products_barcode on products(barcode);
 
 -- USERS TABLE (Custom auth for this template)
 create table if not exists users (

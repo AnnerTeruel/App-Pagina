@@ -23,6 +23,7 @@ export interface Product {
   colors: string[];
   inventory: number;
   isFeatured: boolean;
+  barcode?: string;
   colorImages?: { color: string; image: string }[];
   createdAt: string;
 }

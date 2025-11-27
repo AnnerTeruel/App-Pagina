@@ -1,8 +1,9 @@
 'use client';
 
-import { useState, ChangeEvent } from "react";
+import { useState, ChangeEvent, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { productService } from "@/services/product.service";
+import { barcodeService } from "@/services/barcode.service";
 import { fileToBase64 } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,9 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
+import { BarcodeScanner } from "@/components/BarcodeScanner";
+import { BarcodeGenerator } from "@/components/BarcodeGenerator";
+import { Scan, Barcode } from "lucide-react";
 
 
 export default function CreateProductAdminPage() {
@@ -30,6 +34,7 @@ export default function CreateProductAdminPage() {
   const [price, setPrice] = useState<number | "">("");
   const [category, setCategory] = useState("");
   const [inventory, setInventory] = useState(0);
+  const [barcode, setBarcode] = useState("");
 
   const [images, setImages] = useState<string[]>([]);
   const [colors, setColors] = useState<string[]>([]);
@@ -42,6 +47,9 @@ export default function CreateProductAdminPage() {
   const [colorImageInput, setColorImageInput] = useState("");
   const [sizeInput, setSizeInput] = useState("");
   const [materialInput, setMaterialInput] = useState("");
+
+  const [showScanner, setShowScanner] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
 
   const addToList = (value: string, list: string[], setList: any, setInput: any) => {
     if (!value.trim()) return;
@@ -91,6 +99,67 @@ export default function CreateProductAdminPage() {
     setColorImages(updatedColorImages);
   };
 
+  // Generate unique barcode on component mount
+  useEffect(() => {
+    const generateNewBarcode = async () => {
+      try {
+        const newBarcode = await barcodeService.generateUniqueBarcode();
+        setBarcode(newBarcode);
+      } catch (error) {
+        console.error('Error generating barcode:', error);
+        toast.error('Error al generar código de barras');
+      }
+    };
+
+    if (!barcode) {
+      generateNewBarcode();
+    }
+  }, []);
+
+  // Handle barcode scan
+  const handleBarcodeScan = async (scannedCode: string) => {
+    setShowScanner(false);
+    setIsSearching(true);
+
+    try {
+      const product = await barcodeService.findProductByBarcode(scannedCode);
+
+      if (product) {
+        // Product found - auto-fill form (except images)
+        setName(product.name || '');
+        setDescription(product.description || '');
+        setPrice(product.price || '');
+        setCategory(product.category || '');
+        setInventory(product.inventory || 0);
+        setBarcode(product.barcode || scannedCode);
+        setColors(product.colors || []);
+        setSizes(product.sizes || []);
+        setMaterials(product.materials || []);
+
+        toast.success(`Producto encontrado: ${product.name}`);
+      } else {
+        // Product not found - keep barcode, clear other fields
+        setBarcode(scannedCode);
+        toast.info('Producto no encontrado. Completa los datos para crear uno nuevo.');
+      }
+    } catch (error) {
+      console.error('Error searching product:', error);
+      toast.error('Error al buscar producto');
+    } finally {
+      setIsSearching(false);
+    }
+  };
+
+  // Manual barcode search
+  const handleBarcodeSearch = async () => {
+    if (!barcode.trim()) {
+      toast.error('Ingresa un código de barras');
+      return;
+    }
+
+    await handleBarcodeScan(barcode);
+  };
+
   const handleSubmit = async () => {
     if (!name.trim() || !description.trim() || !price || !category.trim()) {
       toast.error("Completa todos los campos obligatorios");
@@ -110,6 +179,7 @@ export default function CreateProductAdminPage() {
         sizes,
         materials,
         isFeatured: false,
+        barcode,
       });
 
       toast.success("Producto creado correctamente");
@@ -124,13 +194,63 @@ export default function CreateProductAdminPage() {
     <div className="container mx-auto px-4 py-8 pt-20">
       <h1 className="text-4xl font-bold mb-4">Crear Producto (ADMIN)</h1>
 
-      <Card>
-        <CardContent className="space-y-6 mt-6">
-          {/* NOMBRE */}
-          <div>
-            <label className="font-semibold">Nombre *</label>
-            <Input value={name} onChange={(e) => setName(e.target.value)} />
-          </div>
+      {/* Barcode Scanner Modal */}
+      {showScanner && (
+        <BarcodeScanner
+          onScan={handleBarcodeScan}
+          onClose={() => setShowScanner(false)}
+        />
+      )}
+
+      <div className="grid lg:grid-cols-3 gap-6">
+        {/* Main Form */}
+        <div className="lg:col-span-2">
+          <Card>
+            <CardContent className="space-y-6 mt-6">
+              {/* BARCODE SECTION */}
+              <div className="space-y-4 p-4 bg-primary/5 rounded-lg border border-primary/20">
+                <div className="flex items-center justify-between">
+                  <label className="font-semibold flex items-center gap-2">
+                    <Barcode className="h-5 w-5" />
+                    Código de Barras
+                  </label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowScanner(true)}
+                  >
+                    <Scan className="h-4 w-4 mr-2" />
+                    Escanear
+                  </Button>
+                </div>
+
+                <div className="flex gap-2">
+                  <Input
+                    value={barcode}
+                    onChange={(e) => setBarcode(e.target.value)}
+                    placeholder="SH-XXXXXXXXXX"
+                    readOnly={isSearching}
+                  />
+                  <Button
+                    type="button"
+                    onClick={handleBarcodeSearch}
+                    disabled={isSearching || !barcode}
+                  >
+                    {isSearching ? 'Buscando...' : 'Buscar'}
+                  </Button>
+                </div>
+
+                <p className="text-xs text-muted-foreground">
+                  Escanea un producto existente para auto-completar los datos, o usa el código generado para un producto nuevo.
+                </p>
+              </div>
+
+              {/* NOMBRE */}
+              <div>
+                <label className="font-semibold">Nombre *</label>
+                <Input value={name} onChange={(e) => setName(e.target.value)} />
+              </div>
 
           {/* DESCRIPCIÓN */}
           <div>
@@ -305,5 +425,18 @@ export default function CreateProductAdminPage() {
         </CardContent>
       </Card>
     </div>
+
+    {/* Sidebar - Barcode Generator */}
+    <div className="lg:col-span-1">
+      {barcode && (
+        <BarcodeGenerator
+          barcode={barcode}
+          productName={name}
+          price={typeof price === 'number' ? price : undefined}
+        />
+      )}
+    </div>
+  </div>
+</div>
   );
 }
