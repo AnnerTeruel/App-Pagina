@@ -45,10 +45,21 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
           fps: 10,
           qrbox: { width: 250, height: 250 },
         },
-        (decodedText) => {
-          // Successfully scanned
+        async (decodedText) => {
+          // Successfully scanned - stop scanner immediately
+          if (scannerRef.current) {
+            try {
+              await scannerRef.current.stop();
+              scannerRef.current.clear();
+              scannerRef.current = null;
+              setIsScanning(false);
+            } catch (err) {
+              console.error('Error stopping scanner:', err);
+            }
+          }
+          
+          // Call the onScan callback
           onScan(decodedText);
-          stopScanning();
         },
         (errorMessage) => {
           // Scanning error (ignore, happens frequently)
