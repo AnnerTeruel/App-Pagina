@@ -13,7 +13,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { toast } from 'sonner';
-import { Plus, Trash2, Eye, EyeOff, Image as ImageIcon, Loader2, Upload } from 'lucide-react';
+import { Plus, Trash2, Eye, EyeOff, Image as ImageIcon, Loader2, Upload, Edit } from 'lucide-react';
 
 export default function AdminCategoriesPage() {
   const router = useRouter();
@@ -21,12 +21,19 @@ export default function AdminCategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
   
   // Form state
   const [newName, setNewName] = useState('');
   const [newSlug, setNewSlug] = useState('');
   const [newImage, setNewImage] = useState('');
+  
+  // Edit form state
+  const [editName, setEditName] = useState('');
+  const [editSlug, setEditSlug] = useState('');
+  const [editImage, setEditImage] = useState('');
 
   const fetchCategories = async () => {
     try {
@@ -120,6 +127,66 @@ export default function AdminCategoriesPage() {
     } catch (error) {
       console.error('Error updating category:', error);
       toast.error('Error al actualizar categoría');
+    }
+  };
+
+  const handleEdit = (category: Category) => {
+    setEditingCategory(category);
+    setEditName(category.name);
+    setEditSlug(category.slug);
+    setEditImage(category.image);
+    setIsEditDialogOpen(true);
+  };
+
+  const handleUpdate = async () => {
+    if (!editingCategory || !editName || !editSlug) {
+      toast.error('Nombre y Slug son obligatorios');
+      return;
+    }
+
+    try {
+      const result = await categoryService.updateCategoryWithCascade(
+        editingCategory.id,
+        editingCategory.name,
+        {
+          name: editName,
+          slug: editSlug.toLowerCase().replace(/\s+/g, '-'),
+          image: editImage
+        }
+      );
+      
+      if (result.productsUpdated > 0) {
+        toast.success(`Categoría actualizada. ${result.productsUpdated} producto(s) actualizado(s)`);
+      } else {
+        toast.success('Categoría actualizada');
+      }
+      
+      setIsEditDialogOpen(false);
+      setEditingCategory(null);
+      setEditName('');
+      setEditSlug('');
+      setEditImage('');
+      fetchCategories();
+    } catch (error) {
+      console.error('Error updating category:', error);
+      toast.error('Error al actualizar categoría');
+    }
+  };
+
+  const handleEditFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (!e.target.files || e.target.files.length === 0) return;
+    
+    const file = e.target.files[0];
+    try {
+      setUploading(true);
+      const url = await uploadService.uploadFile(file, 'categories');
+      setEditImage(url);
+      toast.success('Imagen subida correctamente');
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      toast.error('Error al subir imagen');
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -233,6 +300,9 @@ export default function AdminCategoriesPage() {
                       <Button variant="ghost" size="icon" onClick={() => handleToggleActive(category)}>
                         {category.is_active ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
                       </Button>
+                      <Button variant="ghost" size="icon" onClick={() => handleEdit(category)}>
+                        <Edit className="h-4 w-4" />
+                      </Button>
                       <Button variant="ghost" size="icon" onClick={() => handleDelete(category.id)} className="text-red-500 hover:text-red-700">
                         <Trash2 className="h-4 w-4" />
                       </Button>
@@ -251,6 +321,58 @@ export default function AdminCategoriesPage() {
           )}
         </CardContent>
       </Card>
+
+      {/* Edit Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Editar Categoría</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label>Nombre</Label>
+              <Input 
+                value={editName} 
+                onChange={(e) => {
+                  setEditName(e.target.value);
+                  if (!editSlug || editSlug === editingCategory?.slug) {
+                    setEditSlug(e.target.value.toLowerCase().replace(/\s+/g, '-'));
+                  }
+                }}
+                placeholder="Ej: Camisas" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Slug (URL)</Label>
+              <Input 
+                value={editSlug} 
+                onChange={(e) => setEditSlug(e.target.value)}
+                placeholder="ej: camisas-deportivas" 
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Imagen</Label>
+              <div className="flex gap-2 items-center">
+                <Input 
+                  type="file" 
+                  accept="image/*"
+                  onChange={handleEditFileUpload}
+                  disabled={uploading}
+                />
+                {uploading && <Loader2 className="h-4 w-4 animate-spin" />}
+              </div>
+              {editImage && (
+                <div className="mt-2 relative h-20 w-20 rounded overflow-hidden border">
+                  <img src={editImage} alt="Preview" className="object-cover w-full h-full" />
+                </div>
+              )}
+            </div>
+            <Button onClick={handleUpdate} className="w-full" disabled={uploading}>
+              {uploading ? 'Subiendo...' : 'Actualizar'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

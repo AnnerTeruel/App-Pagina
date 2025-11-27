@@ -69,6 +69,33 @@ class ProductService extends CrudOperations {
             // Don't throw error - allow product creation to continue
         }
     }
+
+    /**
+     * Updates category name in all products
+     * Used when a category is renamed
+     */
+    async updateProductsCategory(oldCategoryName: string, newCategoryName: string): Promise<number> {
+        try {
+            // Get all products with the old category name
+            const allProducts = await this.getAllProducts();
+            const productsToUpdate = allProducts.filter(
+                (p: any) => p.category?.toLowerCase() === oldCategoryName.toLowerCase()
+            );
+
+            // Update each product
+            let updatedCount = 0;
+            for (const product of productsToUpdate) {
+                await this.update(product.id, { category: newCategoryName });
+                updatedCount++;
+            }
+
+            console.log(`Updated ${updatedCount} products from "${oldCategoryName}" to "${newCategoryName}"`);
+            return updatedCount;
+        } catch (error) {
+            console.error('Error updating products category:', error);
+            throw error;
+        }
+    }
 }
 
 export const productService = new ProductService();
