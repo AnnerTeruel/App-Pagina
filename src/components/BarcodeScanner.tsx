@@ -39,12 +39,25 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
       const scanner = new Html5Qrcode('barcode-reader');
       scannerRef.current = scanner;
 
+      // Better camera configuration
+      const config = {
+        fps: 30, // Increased from 10 to 30 for better detection
+        qrbox: function(viewfinderWidth: number, viewfinderHeight: number) {
+          // Dynamic box size based on screen
+          const minEdge = Math.min(viewfinderWidth, viewfinderHeight);
+          const qrboxSize = Math.floor(minEdge * 0.7);
+          return {
+            width: qrboxSize,
+            height: Math.floor(qrboxSize * 0.4) // Wider box for barcodes
+          };
+        },
+        aspectRatio: 1.777778, // 16:9 aspect ratio
+        disableFlip: false, // Allow image flipping
+      };
+
       await scanner.start(
         { facingMode: 'environment' }, // Use back camera
-        {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-        },
+        config,
         async (decodedText) => {
           // Successfully scanned - stop scanner immediately
           if (scannerRef.current) {
@@ -131,9 +144,24 @@ export function BarcodeScanner({ onScan, onClose }: BarcodeScannerProps) {
             )}
           </div>
 
-          <p className="text-xs text-muted-foreground text-center">
-            Apunta la cámara al código de barras del producto
-          </p>
+          {isScanning && (
+            <div className="space-y-2">
+              <p className="text-xs font-semibold text-primary">💡 Consejos para mejor escaneo:</p>
+              <ul className="text-xs text-muted-foreground space-y-1">
+                <li>• Mantén el código dentro del recuadro</li>
+                <li>• Asegúrate de tener buena iluminación</li>
+                <li>• Mantén la cámara estable (no muevas)</li>
+                <li>• Distancia: 10-20 cm del código</li>
+                <li>• Si no funciona, prueba entrada manual</li>
+              </ul>
+            </div>
+          )}
+
+          {!isScanning && (
+            <p className="text-xs text-muted-foreground text-center">
+              Apunta la cámara al código de barras del producto
+            </p>
+          )}
         </CardContent>
       </Card>
     </div>
