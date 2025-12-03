@@ -32,6 +32,19 @@ export const metadata: Metadata = {
 export default function RootLayout({
   children,
 }: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="es" suppressHydrationWarning>
+      <head>
+        <link rel="apple-touch-icon" href="/icon-192.png" />
+      </head>
+      <body className={`${poppins.variable} antialiased font-sans`}>
+        <ThemeProvider
+          attribute="class"
+          defaultTheme="system"
+          enableSystem
+          disableTransitionOnChange
           themes={["light", "dark", "purple"]}
         >
           <AuthProvider>
